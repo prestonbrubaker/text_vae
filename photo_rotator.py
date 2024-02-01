@@ -18,11 +18,22 @@ def rotate_images(source_folder, target_folder):
         if os.path.isfile(file_path):
             # Open the image
             with Image.open(file_path) as img:
-                # Rotate the image
-                rotated_img = img.rotate(random.uniform(0, 360))
+                # Rotate the image without expanding
+                angle = random.uniform(0, 360)
+                rotated_img = img.rotate(angle, expand=False)
 
-                # Save the rotated image to the target folder
-                rotated_img.save(os.path.join(target_folder, file_name))
+                # Create a new image with a white background
+                new_img = Image.new('L', img.size, color=255)
+                
+                # Calculate the new position to paste the rotated image
+                x = (new_img.width - rotated_img.width) // 2
+                y = (new_img.height - rotated_img.height) // 2
+
+                # Paste the rotated image onto the new image
+                new_img.paste(rotated_img, (x, y), rotated_img)
+
+                # Save the new image to the target folder
+                new_img.save(os.path.join(target_folder, file_name))
 
 # Define the source and target folders
 source_folder = "photos"
