@@ -3,7 +3,10 @@ import random
 import string
 import os
 
+FILE_PATH = "test_photos"
+
 def create_image(image_number):
+    global FILE_PATH
     # Create a 256x256 greyscale image with white background
     img = Image.new('L', (256, 256), color=255)  # White background
 
@@ -30,11 +33,11 @@ def create_image(image_number):
     draw.text((x, y), letter, font=font, fill=0)  # Black text
 
     # Save the image in the 'photos' subfolder
-    img.save(f'photos/{image_number:05d}_random_letter.png')
+    img.save(f'{FILE_PATH}/{image_number:05d}_random_letter.png')
 
 # Create the 'photos' subfolder if it doesn't exist
-if not os.path.exists('photos'):
-    os.makedirs('photos')
+if not os.path.exists(FILE_PATH):
+    os.makedirs(FILE_PATH)
 
 # Generate and save 1,000 images
 for i in range(1000):
