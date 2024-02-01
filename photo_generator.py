@@ -39,6 +39,6 @@ def create_image(image_number):
 if not os.path.exists(FILE_PATH):
     os.makedirs(FILE_PATH)
 
-# Generate and save 10,000 images
-for i in range(10000):
+# Generate and save 100,000 images
+for i in range(100000):
     create_image(i)
