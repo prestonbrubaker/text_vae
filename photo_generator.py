@@ -3,7 +3,7 @@ import random
 import string
 import os
 
-FILE_PATH = "test_photos"
+FILE_PATH = "photos"
 
 def create_image(image_number):
     global FILE_PATH
