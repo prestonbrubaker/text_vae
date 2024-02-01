@@ -2,6 +2,7 @@ from PIL import Image
 import numpy as np
 import os
 import random
+import scipy.ndimage
 
 def rotate_images(source_folder, target_folder):
     # Check if the target folder exists, if not, create it
@@ -21,12 +22,12 @@ def rotate_images(source_folder, target_folder):
             with Image.open(file_path) as img:
                 img_array = np.array(img)
 
-                # Rotate the image using numpy
+                # Rotate the image using scipy
                 angle = random.uniform(0, 360)
-                rotated_array = np.rot90(img_array, k=int(angle / 90))
+                rotated_array = scipy.ndimage.rotate(img_array, angle, reshape=True, mode='nearest')
 
                 # Convert the numpy array back to an image
-                rotated_img = Image.fromarray(rotated_array)
+                rotated_img = Image.fromarray(rotated_array.astype('uint8'), 'L')
 
                 # Save the rotated image to the target folder
                 rotated_img.save(os.path.join(target_folder, file_name))
