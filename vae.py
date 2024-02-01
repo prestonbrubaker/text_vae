@@ -17,7 +17,7 @@ class VariationalAutoencoder(nn.Module):
 
        # Encoder
         self.encoder = nn.Sequential(
-            nn.Conv2d(3, 16, kernel_size=4, stride=2, padding=1),  # Output: 32x128x128
+            nn.Conv2d(1, 16, kernel_size=4, stride=2, padding=1),  # Output: 16x128x128
             nn.ReLU(),
             nn.Conv2d(16, 32, kernel_size=4, stride=2, padding=1),  # Output: 64x64x64
             nn.ReLU(),
@@ -46,7 +46,7 @@ class VariationalAutoencoder(nn.Module):
             nn.ReLU(),
             nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2, padding=1),  # Output: 32x128x128
             nn.ReLU(),
-            nn.ConvTranspose2d(16, 3, kernel_size=4, stride=2, padding=1),  # Output: 1x256x256
+            nn.ConvTranspose2d(16, 1, kernel_size=4, stride=2, padding=1),  # Output: 1x256x256
             nn.Sigmoid()
         )
 
@@ -91,7 +91,7 @@ class CustomDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.folder_path, self.file_list[idx])
-        image = Image.open(img_path).convert('RGB')  # Convert to RGB
+        image = Image.open(img_path).convert('L')  # Convert to greyscale
         if self.transform:
             image = self.transform(image)
         return image
