@@ -7,7 +7,7 @@ from PIL import Image
 import os
 
 # Model Parameters
-latent_dim = 256  # Example latent space dimension
+latent_dim = 27 
 LATENT_DIM = latent_dim
 
 class VariationalAutoencoder(nn.Module):
@@ -130,7 +130,7 @@ transform = transforms.Compose([
 dataset = CustomDataset(folder_path='photos', transform=transform)
 
 # Dataset and Dataloader
-dataloader = DataLoader(dataset, batch_size=200, shuffle=True)
+dataloader = DataLoader(dataset, batch_size=500, shuffle=True)
 
 
 # Dataset and Dataloader for test data
