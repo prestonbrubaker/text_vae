@@ -71,27 +71,6 @@ class VariationalAutoencoder(nn.Module):
         z = self.reparameterize(mu, log_var)
         return self.decode(z), mu, log_var
 
-    def encode(self, x):
-        x = self.encoder(x)
-        mu = self.fc_mu(x)
-        log_var = self.fc_log_var(x)
-        return mu, log_var
-
-    def reparameterize(self, mu, log_var):
-        std = torch.exp(0.5 * log_var)
-        eps = torch.randn_like(std)
-        return mu + eps * std
-
-    def decode(self, z):
-        x = self.decoder_input(z)
-        x = self.decoder(x)
-        return x
-
-    def forward(self, x):
-        mu, log_var = self.encode(x)
-        z = self.reparameterize(mu, log_var)
-        return self.decode(z), mu, log_var
-
 
 
 
