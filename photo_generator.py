@@ -14,7 +14,7 @@ def create_image(image_number):
     font_size = random.randint(int(0.1 * 128), 128)
 
     # Load a font
-    font = ImageFont.truetype("arial.ttf", font_size)
+    font = ImageFont.load_default()
 
     # Create a draw object
     draw = ImageDraw.Draw(img)
