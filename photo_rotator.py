@@ -33,7 +33,7 @@ def rotate_images(source_folder, target_folder):
                 rotated_img.save(os.path.join(target_folder, file_name))
 
 # Define the source and target folders
-source_folder = "photos"
+source_folder = "temp"
 target_folder = "photos_2"
 
 # Rotate the images
