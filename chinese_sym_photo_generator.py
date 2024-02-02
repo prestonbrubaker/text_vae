@@ -2,9 +2,8 @@ from PIL import Image, ImageDraw, ImageFont
 import random
 import os
 
-FILE_PATH = "photos"
+FILE_PATH = "test_photos"
 
-# List of 500 unique Chinese characters
 chinese_chars = [
     '的', '一', '是', '不', '了', '在', '人', '有', '我', '他',
     '这', '个', '们', '中', '来', '上', '大', '为', '和', '国',
