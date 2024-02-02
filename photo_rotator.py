@@ -34,7 +34,7 @@ def rotate_images(source_folder, target_folder):
 
 # Define the source and target folders
 source_folder = "temp"
-target_folder = "photos_2"
+target_folder = "test_photos"
 
 # Rotate the images
 rotate_images(source_folder, target_folder)
