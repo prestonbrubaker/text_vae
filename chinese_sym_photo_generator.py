@@ -2,7 +2,7 @@ from PIL import Image, ImageDraw, ImageFont
 import random
 import os
 
-FILE_PATH = "temp"
+FILE_PATH = "photos"
 
 chinese_chars = [
     '的', '一', '是', '不', '了', '在', '人', '有', '我', '他',
