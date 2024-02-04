@@ -220,10 +220,10 @@ for epoch in range(num_epochs):
     mean_mu = numpy.mean(all_mu, axis=0)
     mean_log_var = numpy.mean(all_log_var, axis=0)
 
-    # Create and write to the "mean_latents.txt" file
+   # Create and write to the "mean_latents.txt" file
     mean_latents_filename = os.path.join("latent_logs", "mean_latents.txt")
     with open(mean_latents_filename, "w") as file:  # Use 'w' mode to overwrite the file
-        file.write(f'Mean mu: {" ".join(map(str, mean_mu))}, Mean log_var: {" ".join(map(str, mean_log_var))}\n')
+        file.write(" ".join(map(str, mean_mu)) + " " + " ".join(map(str, mean_log_var)) + "\n")
 
 # Save the final model
 torch.save(model.state_dict(), 'variational_autoencoder_final.pth')
