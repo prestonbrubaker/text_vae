@@ -178,7 +178,8 @@ for epoch in range(num_epochs):
             mu_i = mu[i].detach().cpu().numpy()
             log_var_i = log_var[i].detach().cpu().numpy()
             with open("latent_mapping.txt", "a") as file:
-                file.write("Example {}: mu: {}, log_var: {}, BCE_loss: {}, KLD_loss: {}\n".format(i, ', '.join(map(str, mu_i.tolist())), ', '.join(map(str, log_var_i.tolist())), BCE_loss[i].item(), KLD_loss[i].item()))
+                file.write("Example {}: mu: {}, log_var: {}\n".format(i, ', '.join(map(str, mu_i.tolist())), ', '.join(map(str, log_var_i.tolist()))))
+
 
         # Accumulate losses for averaging
         total_bce_loss += BCE_loss.item()
