@@ -174,7 +174,7 @@ for epoch in range(num_epochs):
 
         # Record information
         with open("latent_mapping.txt", "a") as file:
-            file.write("mu: " + str(mu.item()) + " log_var: " + str(log_var.item()) + " BCE_loss: " + str(BCE_loss.item()) + " KLD_loss: " + str(KLD_loss.item()) + "\n")
+            file.write("mu: " + str(mu) + " log_var: " + str(log_var) + " BCE_loss: " + str(BCE_loss.item()) + " KLD_loss: " + str(KLD_loss.item()) + "\n")
 
         # Accumulate losses for averaging
         total_bce_loss += BCE_loss.item()
