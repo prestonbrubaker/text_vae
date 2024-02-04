@@ -163,12 +163,17 @@ for epoch in range(num_epochs):
     total_bce_loss = 0
     total_kld_loss = 0
     total_loss = 0
+    all_mu = []
+    all_log_var = []
 
     for data in dataloader:
         img = data.to(device)
 
         # Forward pass
         recon_batch, mu, log_var = model(img)
+
+        all_mu.extend(mu.tolist())
+        all_log_var.extend(log_var.tolist())
         
         # Calculate loss
         BCE_loss, KLD_loss, loss = loss_function(recon_batch, img, mu, log_var)
@@ -210,6 +215,15 @@ for epoch in range(num_epochs):
     if (epoch % 25 == 0 and epoch > 24):
         torch.save(model.state_dict(), f'variational_autoencoder.pth')
         print("Model Saved at Epoch: ", epoch)
+
+    # Calculate the mean of mu and log_var for the epoch
+    mean_mu = numpy.mean(all_mu, axis=0)
+    mean_log_var = numpy.mean(all_log_var, axis=0)
+
+    # Create and write to the "mean_latents.txt" file
+    mean_latents_filename = os.path.join("latent_logs", "mean_latents.txt")
+    with open(mean_latents_filename, "a") as file:
+        file.write(f'Epoch {epoch}: Mean mu: {" ".join(map(str, mean_mu))}, Mean log_var: {" ".join(map(str, mean_log_var))}\n')
 
 # Save the final model
 torch.save(model.state_dict(), 'variational_autoencoder_final.pth')
