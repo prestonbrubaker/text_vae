@@ -107,9 +107,15 @@ vae_model.eval()  # Set the model to evaluation mode
 # Read the mean latents from "mean_latents.txt" (use the most recent epoch's values)
 with open("latent_logs/mean_latents.txt", "r") as file:
     lines = file.readlines()
-    last_epoch_mean_latents = lines[-1].strip()  # Get the last line with mean values
-    mean_latents = [float(latent) for latent in last_epoch_mean_latents.split(": ")[1].split(", ")]
-
+    for line in reversed(lines):  # Iterate in reverse order to find the last line with mean values
+        if line.startswith("Mean mu"):
+            last_epoch_mean_latents = line.strip()  # Get the last line with mean values
+            mean_latents = [float(latent) for latent in last_epoch_mean_latents.split(": ")[1].split(", ")]
+            break
+    else:
+        # Handle the case when "Mean mu" line is not found
+        print("Error: 'Mean mu' line not found in 'mean_latents.txt'")
+        mean_latents = []  # You can set some default values or handle the error accordingly
 # Generate images using the mean latents
 num_generated_images = 500
 generate_images_with_mean_latents(vae_model, num_generated_images, 'generated_photos', mean_latents)
