@@ -173,12 +173,12 @@ for epoch in range(num_epochs):
         # Calculate loss
         BCE_loss, KLD_loss, loss = loss_function(recon_batch, img, mu, log_var)
 
-        # Record information
-        with open("latent_mapping.txt", "a") as file:
-            mu_np = mu.detach().cpu().numpy()
-            log_var_np = log_var.detach().cpu().numpy()
-            file.write("mu: " + str(mu_np) + " log_var: " + str(log_var_np) + " BCE_loss: " + str(BCE_loss.item()) + " KLD_loss: " + str(KLD_loss.item()) + "\n")
-
+        # Record information for each example in the batch
+        for i in range(img.size(0)):
+            with open("latent_mapping.txt", "a") as file:
+                mu_i = mu[i].detach().cpu().numpy()
+                log_var_i = log_var[i].detach().cpu().numpy()
+                file.write("Example {}: mu: {} log_var: {} BCE_loss: {} KLD_loss: {}\n".format(i, mu_i, log_var_i, BCE_loss[i].item(), KLD_loss[i].item()))
 
         # Accumulate losses for averaging
         total_bce_loss += BCE_loss.item()
