@@ -113,18 +113,17 @@ def generate_images_with_random_latents(model, num_images, folder_path, mean_mu,
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load the trained model
-model_path = 'variational_autoencoder.pth' 
+model_path = 'variational_autoencoder.pth'
 vae_model = load_model(model_path, device)
 vae_model.eval()  # Set the model to evaluation mode
 
 # Specify the path to the mean latents file
 mean_latents_file = 'latent_logs/mean_latents.txt'
 
-# Read the mean latents from the file
-mean_latents = load_mean_latents(mean_latents_file, LATENT_DIM)
+# Correctly read the mean latents from the file, unpacking them into mean_mu and mean_log_var
+mean_mu, mean_log_var = load_mean_latents(mean_latents_file, LATENT_DIM)
 
-# Generate images using the mean latents
-num_generated_images = 500
-generate_images_with_random_latents(vae_model, num_generated_images, 'generated_photos', mean_latents)
+# Correctly pass mean_mu and mean_log_var to the function
+generate_images_with_random_latents(vae_model, num_generated_images, 'generated_photos', mean_mu, mean_log_var)
 
 print(f"Generated {num_generated_images} images in 'generated_photos' folder.")
