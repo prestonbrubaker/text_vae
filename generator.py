@@ -72,7 +72,11 @@ class VariationalAutoencoder(nn.Module):
         return self.decode(z), mu, log_var
 
 
-
+# Function to load the model
+def load_model(path, device):
+    model = VariationalAutoencoder(latent_dim=LATENT_DIM).to(device)
+    model.load_state_dict(torch.load(path))
+    return model
 
 def load_mean_latents(file_path):
     with open(file_path, 'r') as file:
