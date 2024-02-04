@@ -217,13 +217,15 @@ for epoch in range(num_epochs):
         print("Model Saved at Epoch: ", epoch)
 
     # Calculate the mean of mu and log_var for the epoch
-    mean_mu = numpy.mean(all_mu, axis=0)
-    mean_log_var = numpy.mean(all_log_var, axis=0)
+    mean_mu = numpy.mean(numpy.array(all_mu), axis=0)
+    mean_log_var = numpy.mean(numpy.array(all_log_var), axis=0)
 
    # Create and write to the "mean_latents.txt" file
-    mean_latents_filename = os.path.join("latent_logs", "mean_latents.txt")
-    with open(mean_latents_filename, "w") as file:  # Use 'w' mode to overwrite the file
-        file.write(" ".join(map(str, mean_mu)) + " " + " ".join(map(str, mean_log_var)) + "\n")
+    with open(os.path.join("latent_logs", "mean_latents.txt"), "w") as file:
+        # Joining the mean values with space and converting them to strings
+        mu_str = " ".join(map(str, mean_mu))
+        log_var_str = " ".join(map(str, mean_log_var))
+        file.write(mu_str + " " + log_var_str + "\n")
 
 # Save the final model
 torch.save(model.state_dict(), 'variational_autoencoder_final.pth')
