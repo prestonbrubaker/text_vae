@@ -1,3 +1,12 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, Dataset
+from torchvision import transforms
+from PIL import Image
+import os
+import numpy
+
 class VariationalAutoencoder(nn.Module):
     def __init__(self, latent_dim):
         super(VariationalAutoencoder, self).__init__()
