@@ -88,18 +88,20 @@ def load_mean_latents(file_path, latent_dim):
         mean_latents = [float(value) for value in values]
         return mean_latents
 
-def generate_images_with_mean_latents(model, num_images, folder_path, mean_latents):
-    os.makedirs(folder_path, exist_ok=True)  # Create the directory if it doesn't exist
+def generate_images_with_random_latents(model, num_images, folder_path, mean_mu, mean_log_var):
+    os.makedirs(folder_path, exist_ok=True)  # Ensure the directory exists
 
     for i in range(num_images):
         with torch.no_grad():
-            # Use the provided mean_latents
-            latent_vector = torch.tensor(mean_latents).unsqueeze(0).to(device)
+            # Sample a new latent_vector for each image
+            mu = torch.tensor(mean_mu).unsqueeze(0).to(device)
+            log_var = torch.tensor(mean_log_var).unsqueeze(0).to(device)
+            latent_vector = model.reparameterize(mu, log_var)
 
-            # Decode the latent vector
+            # Decode the sampled latent vector
             generated_image = model.decode(latent_vector).cpu()
 
-            # Convert the output to a PIL image and save
+            # Convert to PIL image and save
             generated_image = generated_image.squeeze(0)
             generated_image = transforms.ToPILImage()(generated_image)
             generated_image.save(os.path.join(folder_path, f"generated_image_{i+1}.png"))
@@ -120,6 +122,6 @@ mean_latents = load_mean_latents(mean_latents_file, LATENT_DIM)
 
 # Generate images using the mean latents
 num_generated_images = 500
-generate_images_with_mean_latents(vae_model, num_generated_images, 'generated_photos', mean_latents)
+generate_images_with_random_latents(vae_model, num_generated_images, 'generated_photos', mean_latents)
 
 print(f"Generated {num_generated_images} images in 'generated_photos' folder.")
