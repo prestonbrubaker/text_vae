@@ -169,6 +169,9 @@ for epoch in range(num_epochs):
         # Forward pass
         recon_batch, mu, log_var = model(img)
 
+        with open("latent_mapping.txt", "a") as file:
+            file.write("mu: " + str(mu) + "log_var: " + str(log_var) + "\n")
+        
         # Calculate loss
         BCE_loss, KLD_loss, loss = loss_function(recon_batch, img, mu, log_var)
 
