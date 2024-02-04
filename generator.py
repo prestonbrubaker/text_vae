@@ -123,6 +123,8 @@ mean_latents_file = 'latent_logs/mean_latents.txt'
 # Correctly read the mean latents from the file, unpacking them into mean_mu and mean_log_var
 mean_mu, mean_log_var = load_mean_latents(mean_latents_file, LATENT_DIM)
 
+num_generated_images = 500
+
 # Correctly pass mean_mu and mean_log_var to the function
 generate_images_with_random_latents(vae_model, num_generated_images, 'generated_photos', mean_mu, mean_log_var)
 
