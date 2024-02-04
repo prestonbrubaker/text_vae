@@ -80,20 +80,16 @@ def load_model(path, device):
     model.load_state_dict(torch.load(path))
     return model
 
-# Function to generate images using the mean mu and log_var from "mean_latents.txt"
 def generate_images_with_mean_latents(model, num_images, folder_path, mean_latents):
     os.makedirs(folder_path, exist_ok=True)  # Create the directory if it doesn't exist
 
     for i in range(num_images):
         with torch.no_grad():
-            # Generate random latent vector
-            random_latent_vector = torch.randn(1, LATENT_DIM).to(device)
-
-            # Replace the random latent vector with the mean_latents
-            random_latent_vector = torch.tensor(mean_latents).to(device)
+            # Use the provided mean_latents
+            latent_vector = torch.tensor(mean_latents).unsqueeze(0).to(device)
 
             # Decode the latent vector
-            generated_image = model.decode(random_latent_vector).cpu()
+            generated_image = model.decode(latent_vector).cpu()
 
             # Convert the output to a PIL image and save
             generated_image = generated_image.squeeze(0)  # Remove batch dimension
