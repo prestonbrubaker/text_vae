@@ -10,6 +10,8 @@ import os
 latent_dim = 27  # Example latent space dimension
 LATENT_DIM = latent_dim
 
+
+
 class VariationalAutoencoder(nn.Module):
     def __init__(self, latent_dim):
         super(VariationalAutoencoder, self).__init__()
@@ -78,10 +80,11 @@ def load_model(path, device):
     model.load_state_dict(torch.load(path))
     return model
 
-def load_mean_latents(file_path):
+def load_mean_latents(file_path, latent_dim):
     with open(file_path, 'r') as file:
         last_line = file.readlines()[-1]  # Read the last line
-        values = last_line.split(' ')[1:]  # Extract values, excluding the initial text
+        # Ensure only latent_dim values are loaded
+        values = last_line.split(' ')[:latent_dim]  # Adjust here to load only the relevant values
         mean_latents = [float(value) for value in values]
         return mean_latents
 
@@ -113,7 +116,7 @@ vae_model.eval()  # Set the model to evaluation mode
 mean_latents_file = 'latent_logs/mean_latents.txt'
 
 # Read the mean latents from the file
-mean_latents = load_mean_latents(mean_latents_file)
+mean_latents = load_mean_latents(mean_latents_file, LATENT_DIM)
 
 # Generate images using the mean latents
 num_generated_images = 500
