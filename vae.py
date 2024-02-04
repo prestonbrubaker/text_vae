@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 from PIL import Image
 import os
+import numpy
 
 # Model Parameters
 latent_dim = 27 
@@ -174,7 +175,10 @@ for epoch in range(num_epochs):
 
         # Record information
         with open("latent_mapping.txt", "a") as file:
-            file.write("mu: " + str(mu) + " log_var: " + str(log_var) + " BCE_loss: " + str(BCE_loss.item()) + " KLD_loss: " + str(KLD_loss.item()) + "\n")
+            mu_np = mu.detach().cpu().numpy()
+            log_var_np = log_var.detach().cpu().numpy()
+            file.write("mu: " + str(mu_np) + " log_var: " + str(log_var_np) + " BCE_loss: " + str(BCE_loss.item()) + " KLD_loss: " + str(KLD_loss.item()) + "\n")
+
 
         # Accumulate losses for averaging
         total_bce_loss += BCE_loss.item()
