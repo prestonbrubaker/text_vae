@@ -59,7 +59,7 @@ class VariationalAutoencoder(nn.Module):
         return mu, log_var
 
     def reparameterize(self, mu, log_var):
-        std = torch.exp(0.5 * log_var)
+        std = torch.exp(0.5 * log_var * 10)
         eps = torch.randn_like(std)
         return mu + eps * std
 
