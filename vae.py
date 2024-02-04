@@ -179,7 +179,7 @@ for epoch in range(num_epochs):
             log_var_i = log_var[i].tolist()  # Convert to list
             for j in range(len(mu_i)):
                 # Create a text file for each latent variable and append mu and log_var
-                latent_filename = os.path.join(latent_logs_dir, f'latent_{j}.txt')
+                latent_filename = os.path.join("latent_logs", f'latent_{j}.txt')
                 with open("latent_logs", "a") as file:
                     file.write("{} {}\n".format(mu_i[j], log_var_i[j]))
 
