@@ -80,14 +80,17 @@ def load_model(path, device):
     model.load_state_dict(torch.load(path))
     return model
 
-# Function to generate images
-def generate_images(model, num_images, folder_path):
+# Function to generate images using the mean mu and log_var from "mean_latents.txt"
+def generate_images_with_mean_latents(model, num_images, folder_path, mean_latents):
     os.makedirs(folder_path, exist_ok=True)  # Create the directory if it doesn't exist
 
     for i in range(num_images):
         with torch.no_grad():
             # Generate random latent vector
             random_latent_vector = torch.randn(1, LATENT_DIM).to(device)
+
+            # Replace the random latent vector with the mean_latents
+            random_latent_vector = torch.tensor(mean_latents).to(device)
 
             # Decode the latent vector
             generated_image = model.decode(random_latent_vector).cpu()
@@ -105,8 +108,14 @@ model_path = 'variational_autoencoder.pth'
 vae_model = load_model(model_path, device)
 vae_model.eval()  # Set the model to evaluation mode
 
-# Generate images
+# Read the mean latents from "mean_latents.txt" (use the most recent epoch's values)
+with open("latent_logs/mean_latents.txt", "r") as file:
+    lines = file.readlines()
+    last_epoch_mean_latents = lines[-1].strip().split(": ")[1].split(", ")
+    mean_latents = [float(latent) for latent in last_epoch_mean_latents]
+
+# Generate images using the mean latents
 num_generated_images = 500
-generate_images(vae_model, num_generated_images, 'generated_photos')
+generate_images_with_mean_latents(vae_model, num_generated_images, 'generated_photos', mean_latents)
 
 print(f"Generated {num_generated_images} images in 'generated_photos' folder.")
