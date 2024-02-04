@@ -82,11 +82,13 @@ def load_model(path, device):
 
 def load_mean_latents(file_path, latent_dim):
     with open(file_path, 'r') as file:
-        lines = file.readlines()
-        last_line = lines[-1]  # Assume the last line contains both mean mu and log_var
-        values = last_line.split(' ')
-        mean_mu = [float(value) for value in values[:latent_dim]]
-        mean_log_var = [float(value) for value in values[latent_dim:2*latent_dim]]  # Assuming the next set of values are log_var
+        last_line = file.readline().strip()  # Read the first (and presumably only) line
+        values = [float(value) for value in last_line.split(' ')]
+        
+        # Assuming the first half is mu and the second half is log_var
+        mean_mu = values[:latent_dim]
+        mean_log_var = values[latent_dim:]
+        
         return mean_mu, mean_log_var
 
 def generate_images_with_random_latents(model, num_images, folder_path, mean_mu, mean_log_var):
