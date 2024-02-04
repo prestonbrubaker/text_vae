@@ -92,10 +92,9 @@ def generate_images_with_mean_latents(model, num_images, folder_path, mean_laten
             generated_image = model.decode(latent_vector).cpu()
 
             # Convert the output to a PIL image and save
-            generated_image = generated_image.squeeze(0)  # Remove batch dimension
+            generated_image = generated_image.squeeze(0)
             generated_image = transforms.ToPILImage()(generated_image)
             generated_image.save(os.path.join(folder_path, f"generated_image_{i+1}.png"))
-
 # Parameters
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
