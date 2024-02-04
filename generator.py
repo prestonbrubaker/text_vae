@@ -74,11 +74,12 @@ class VariationalAutoencoder(nn.Module):
 
 
 
-# Function to load the model
-def load_model(path, device):
-    model = VariationalAutoencoder(latent_dim=LATENT_DIM).to(device)
-    model.load_state_dict(torch.load(path))
-    return model
+def load_mean_latents(file_path):
+    with open(file_path, 'r') as file:
+        last_line = file.readlines()[-1]  # Read the last line
+        values = last_line.split(' ')[1:]  # Extract values, excluding the initial text
+        mean_latents = [float(value) for value in values]
+        return mean_latents
 
 def generate_images_with_mean_latents(model, num_images, folder_path, mean_latents):
     os.makedirs(folder_path, exist_ok=True)  # Create the directory if it doesn't exist
@@ -95,6 +96,7 @@ def generate_images_with_mean_latents(model, num_images, folder_path, mean_laten
             generated_image = generated_image.squeeze(0)
             generated_image = transforms.ToPILImage()(generated_image)
             generated_image.save(os.path.join(folder_path, f"generated_image_{i+1}.png"))
+
 # Parameters
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -103,14 +105,12 @@ model_path = 'variational_autoencoder.pth'
 vae_model = load_model(model_path, device)
 vae_model.eval()  # Set the model to evaluation mode
 
-# Read the mean latents from "mean_latents.txt" (use the most recent epoch's values)
-with open("latent_logs/mean_latents.txt", "r") as file:
-    lines = file.readlines()
-    for line in reversed(lines):  # Iterate in reverse order to find the last line with mean values
-        if line.startswith("Mean mu"):
-            last_epoch_mean_latents = line.strip().split(": ")[1].split(", ")
-            mean_latents = [float(latent) for latent in last_epoch_mean_latents]
-            break
+# Specify the path to the mean latents file
+mean_latents_file = 'latent_logs/mean_latents.txt'
+
+# Read the mean latents from the file
+mean_latents = load_mean_latents(mean_latents_file)
+
 # Generate images using the mean latents
 num_generated_images = 500
 generate_images_with_mean_latents(vae_model, num_generated_images, 'generated_photos', mean_latents)
