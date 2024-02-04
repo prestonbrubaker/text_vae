@@ -61,9 +61,9 @@ if __name__ == "__main__":
     mean_mu, mean_log_var = load_mean_latents(mean_latents_file, latent_dim)
 
     # Generate images using the mean latents with a custom variability scale
-    num_generated_images = 500
+    num_generated_images = 3000
     output_folder = 'generated_photos'
-    variability_scale = 15  # Adjust this value to increase or decrease variability
+    variability_scale = 10  # Adjust this value to increase or decrease variability
 
     generate_images_with_random_latents(vae_model, num_generated_images, output_folder, mean_mu, mean_log_var, variability_scale)
 
