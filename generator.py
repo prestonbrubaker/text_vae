@@ -111,7 +111,7 @@ vae_model.eval()  # Set the model to evaluation mode
 # Read the mean latents from "mean_latents.txt" (use the most recent epoch's values)
 with open("latent_logs/mean_latents.txt", "r") as file:
     lines = file.readlines()
-    # Skip the header and only read the last line
+    # Skip the header and "Mean log_var" lines and only read the last line
     last_epoch_mean_latents = lines[-1].strip().split(": ")[1].split(", ")
     mean_latents = [float(latent) for latent in last_epoch_mean_latents]
 
