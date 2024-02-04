@@ -28,15 +28,22 @@ def load_mean_latents(file_path, latent_dim):
         mean_log_var = values[latent_dim:]
         return mean_mu, mean_log_var
 
-def generate_images_with_random_latents(model, num_images, folder_path, mean_mu, mean_log_var):
-    """Generate and save images using sampled latent variables."""
+def reparameterize(mu, log_var, variability_scale=1.0):
+    """Reparameterize with an additional scale for variability."""
+    std = torch.exp(0.5 * log_var) * variability_scale
+    eps = torch.randn_like(std)
+    return mu + eps * std
+
+def generate_images_with_random_latents(model, num_images, folder_path, mean_mu, mean_log_var, variability_scale=1.0):
+    """Generate and save images using sampled latent variables with controlled variability."""
     os.makedirs(folder_path, exist_ok=True)
 
     for i in range(num_images):
         with torch.no_grad():
             mu = torch.tensor(mean_mu, device=device).unsqueeze(0)
             log_var = torch.tensor(mean_log_var, device=device).unsqueeze(0)
-            latent_vector = model.reparameterize(mu, log_var)
+            # Use the reparameterize function with the variability_scale
+            latent_vector = reparameterize(mu, log_var, variability_scale)
             generated_image = model.decode(latent_vector)
 
             # Convert the generated image to PIL format and save
@@ -53,9 +60,11 @@ if __name__ == "__main__":
     mean_latents_file = 'latent_logs/mean_latents.txt'
     mean_mu, mean_log_var = load_mean_latents(mean_latents_file, latent_dim)
 
-    # Generate images using the mean latents
+    # Generate images using the mean latents with a custom variability scale
     num_generated_images = 500
     output_folder = 'generated_photos'
-    generate_images_with_random_latents(vae_model, num_generated_images, output_folder, mean_mu, mean_log_var)
+    variability_scale = 1.5  # Adjust this value to increase or decrease variability
 
-    print(f"Generated {num_generated_images} images in '{output_folder}' folder.")
+    generate_images_with_random_latents(vae_model, num_generated_images, output_folder, mean_mu, mean_log_var, variability_scale)
+
+    print(f"Generated {num_generated_images} images in '{output_folder}' folder with variability scale {variability_scale}.")
