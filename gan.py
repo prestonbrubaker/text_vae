@@ -8,7 +8,7 @@ import os
 
 
 class Generator(nn.Module):
-    def __init__(self, z_dim=100, img_channels=3):
+    def __init__(self, z_dim=100, img_channels=1):
         super(Generator, self).__init__()
         self.gen = nn.Sequential(
             # Input: Z_dim x 1 x 1
@@ -32,7 +32,7 @@ class Generator(nn.Module):
         return self.gen(x)
 
 class Discriminator(nn.Module):
-    def __init__(self, img_channels=3):
+    def __init__(self, img_channels=1):
         super(Discriminator, self).__init__()
         self.disc = nn.Sequential(
             # Input: img_channels x 256 x 256
