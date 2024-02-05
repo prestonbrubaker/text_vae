@@ -134,8 +134,8 @@ for epoch in range(num_epochs):
         loss_gen.backward()
         opt_gen.step()
 
-    # Save generator model every 25 epochs
-    if (epoch + 1) % 25 == 0:
+    # Save generator model every 1 epoch(s)
+    if (epoch + 1) % 1 == 0:
         torch.save(generator.state_dict(), f'generator_epoch_{epoch+1}.pth')
         print(f"Generator model saved at epoch {epoch+1}")
 
