@@ -139,7 +139,8 @@ for epoch in range(num_epochs):
     # Save generator model every 1 epoch(s)
     if (epoch + 1) % 1 == 0:
         torch.save(generator.state_dict(), f'generator.pth')
-        print(f"Generator model saved at epoch {epoch+1}")
+        torch.save(discriminator.state_dict(), f'discriminator.pth')
+        print(f"Generator and discriminator model saved at epoch {epoch+1}")
 
     print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, loss G: {loss_gen:.4f}")
     with open('model_history.txt', 'a') as file:
