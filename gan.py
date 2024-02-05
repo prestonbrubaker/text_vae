@@ -82,16 +82,36 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 generator.to(device)
 discriminator.to(device)
 
+class CustomImageDataset(Dataset):
+    def __init__(self, root_dir, transform=None):
+        """
+        Args:
+            root_dir (string): Directory with all the images.
+            transform (callable, optional): Optional transform to be applied on a sample.
+        """
+        self.root_dir = root_dir
+        self.transform = transform
+        self.image_files = [f for f in os.listdir(root_dir) if os.path.isfile(os.path.join(root_dir, f))]
+
+    def __len__(self):
+        return len(self.image_files)
+
+    def __getitem__(self, idx):
+        img_name = os.path.join(self.root_dir, self.image_files[idx])
+        image = Image.open(img_name).convert('RGB')  # Convert to RGB to ensure consistency
+        if self.transform:
+            image = self.transform(image)
+
+        return image
 
 transform = transforms.Compose([
-    transforms.Resize((img_size, img_size)),
+    transforms.Resize((256, 256)),
     transforms.ToTensor(),
-    transforms.Normalize((0.5,), (0.5,)),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),  # Adjust as needed
 ])
 
-# Assuming your dataset is in a folder called 'dataset_folder'
-dataset = datasets.ImageFolder(root='photos_2', transform=transform)
-loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+dataset = CustomImageDataset(root_dir='photos_2', transform=transform)
+loader = DataLoader(dataset, batch_size=64, shuffle=True)
 
 
 for epoch in range(num_epochs):
