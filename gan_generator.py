@@ -5,16 +5,17 @@ from PIL import Image
 import os
 
 class Generator(nn.Module):
-    def __init__(self, z_dim=100, img_channels=1, features_gen=64):
+    def __init__(self, z_dim=100, img_channels=1):
         super(Generator, self).__init__()
         self.gen = nn.Sequential(
-            self._block(z_dim, features_gen * 16, 4, 1, 0),  # img: 4x4
-            self._block(features_gen * 16, features_gen * 8, 4, 2, 1),  # img: 8x8
-            self._block(features_gen * 8, features_gen * 4, 4, 2, 1),  # img: 16x16
-            self._block(features_gen * 4, features_gen * 2, 4, 2, 1),  # img: 32x32
-            nn.ConvTranspose2d(features_gen * 2, img_channels, kernel_size=4, stride=2, padding=1),  # img: 64x64
-            nn.Tanh(),  # Output: img_channels x 64 x 64
-            nn.ConvTranspose2d(img_channels, img_channels, kernel_size=16, stride=4, padding=6),  # img: 256x256
+            # Input: Z_dim x 1 x 1
+            self._block(z_dim, 512, 4, 1, 0),  # img: 4x4
+            self._block(512, 256, 4, 2, 1),    # img: 8x8
+            self._block(256, 128, 4, 2, 1),    # img: 16x16
+            self._block(128, 64, 4, 2, 1),     # img: 32x32
+            nn.ConvTranspose2d(64, img_channels, 4, 2, 1),  # img: 64x64
+            nn.ConvTranspose2d(img_channels, img_channels, 16, 4, 6),  # img: 256x256
+            nn.Tanh()  # Output: img_channels x 256 x 256
         )
 
     def _block(self, in_channels, out_channels, kernel_size, stride, padding):
