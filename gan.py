@@ -58,6 +58,7 @@ class Discriminator(nn.Module):
 
 # Device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Using: " + str(device))
 
 # Hyperparameters
 z_dim = 100
