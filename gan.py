@@ -54,6 +54,10 @@ class Discriminator(nn.Module):
     def forward(self, x):
         return self.disc(x).view(-1)
 
+
+# Device configuration
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # Hyperparameters
 z_dim = 100
 learning_rate = 0.0002
