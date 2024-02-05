@@ -62,7 +62,8 @@ print("Using: " + str(device))
 
 # Hyperparameters
 z_dim = 100
-learning_rate = 0.0002
+learning_rate_gen = 0.002
+learning_rate_disc = 0.00005
 batch_size = 64
 img_channels = 1
 img_size = 256
@@ -73,8 +74,8 @@ generator = Generator(z_dim, img_channels).to(device)
 discriminator = Discriminator(img_channels).to(device)
 
 # Optimizers
-opt_gen = optim.Adam(generator.parameters(), lr=learning_rate, betas=(0.5, 0.999))
-opt_disc = optim.Adam(discriminator.parameters(), lr=learning_rate, betas=(0.5, 0.999))
+opt_gen = optim.Adam(generator.parameters(), lr=learning_rate_gen, betas=(0.5, 0.999))
+opt_disc = optim.Adam(discriminator.parameters(), lr=learning_rate_disc, betas=(0.5, 0.999))
 
 # Loss function
 criterion = nn.BCELoss()
