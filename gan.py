@@ -141,5 +141,5 @@ for epoch in range(num_epochs):
 
     print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, loss G: {loss_gen:.4f}")
     with open('model_history.txt', 'a') as file:
-        file.write(f"Epoch [{epoch+1}/{num_epochs}] Loss_D: {loss_disc:.4f}, loss_G: {loss_gen:.4f} \n"
+        file.write(f"Epoch [{epoch+1}/{num_epochs}] Loss_D: {loss_disc:.4f}, loss_G: {loss_gen:.4f} \n")
 
