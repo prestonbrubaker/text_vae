@@ -63,7 +63,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 z_dim = 100
 learning_rate = 0.0002
 batch_size = 64
-img_channels = 3
+img_channels = 1
 img_size = 256
 num_epochs = 50
 
