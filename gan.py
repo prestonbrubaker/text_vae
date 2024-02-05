@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
+from torch.utils.data import DataLoader, Dataset
+from torchvision import datasets, transforms, utils
+from PIL import Image
 import os
 
 
@@ -84,11 +85,6 @@ discriminator.to(device)
 
 class CustomImageDataset(Dataset):
     def __init__(self, root_dir, transform=None):
-        """
-        Args:
-            root_dir (string): Directory with all the images.
-            transform (callable, optional): Optional transform to be applied on a sample.
-        """
         self.root_dir = root_dir
         self.transform = transform
         self.image_files = [f for f in os.listdir(root_dir) if os.path.isfile(os.path.join(root_dir, f))]
@@ -98,24 +94,23 @@ class CustomImageDataset(Dataset):
 
     def __getitem__(self, idx):
         img_name = os.path.join(self.root_dir, self.image_files[idx])
-        image = Image.open(img_name).convert('RGB')  # Convert to RGB to ensure consistency
+        image = Image.open(img_name).convert('L')  # Convert to grayscale
         if self.transform:
             image = self.transform(image)
-
         return image
 
 transform = transforms.Compose([
     transforms.Resize((256, 256)),
     transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),  # Adjust as needed
+    transforms.Normalize((0.5,), (0.5,))  # Adjusted for grayscale
 ])
 
 dataset = CustomImageDataset(root_dir='photos_2', transform=transform)
-loader = DataLoader(dataset, batch_size=64, shuffle=True)
+loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 
 for epoch in range(num_epochs):
-    for batch_idx, (real, _) in enumerate(loader):
+    for batch_idx, real in enumerate(loader):
         real = real.to(device)
         batch_size = real.size(0)
         noise = torch.randn(batch_size, z_dim, 1, 1, device=device)
@@ -137,5 +132,10 @@ for epoch in range(num_epochs):
         generator.zero_grad()
         loss_gen.backward()
         opt_gen.step()
+
+    # Save generator model every 25 epochs
+    if (epoch + 1) % 25 == 0:
+        torch.save(generator.state_dict(), f'generator_epoch_{epoch+1}.pth')
+        print(f"Generator model saved at epoch {epoch+1}")
 
     print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, loss G: {loss_gen:.4f}")
