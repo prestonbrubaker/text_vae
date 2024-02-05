@@ -70,8 +70,24 @@ img_size = 256
 num_epochs = 50
 
 # Initialize generator and discriminator
-generator = Generator(z_dim, img_channels).to(device)
-discriminator = Discriminator(img_channels).to(device)
+generator = Generator(z_dim=z_dim, img_channels=img_channels).to(device)
+discriminator = Discriminator(img_channels=img_channels).to(device)
+
+# Attempt to load existing models
+generator_path = 'generator.pth'
+discriminator_path = 'discriminator.pth'
+
+if os.path.exists(generator_path):
+    generator.load_state_dict(torch.load(generator_path, map_location=device))
+    print("Generator model loaded.")
+else:
+    print("No saved generator model found. Initializing a new one.")
+
+if os.path.exists(discriminator_path):
+    discriminator.load_state_dict(torch.load(discriminator_path, map_location=device))
+    print("Discriminator model loaded.")
+else:
+    print("No saved discriminator model found. Initializing a new one.")
 
 # Optimizers
 opt_gen = optim.Adam(generator.parameters(), lr=learning_rate_gen, betas=(0.5, 0.999))
