@@ -8,7 +8,7 @@ import os
 
 
 class Generator(nn.Module):
-    def __init__(self, z_dim=70, img_channels=1):
+    def __init__(self, z_dim=100, img_channels=1):
         super(Generator, self).__init__()
         self.gen = nn.Sequential(
             # Input: Z_dim x 1 x 1
@@ -61,13 +61,13 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using: " + str(device))
 
 # Hyperparameters
-z_dim = 70
-learning_rate_gen = 0.0005
+z_dim = 100
+learning_rate_gen = 0.001
 learning_rate_disc = 0.000001
-batch_size = 200
+batch_size = 40
 img_channels = 1
 img_size = 256
-num_epochs = 50
+num_epochs = 5000
 
 # Initialize generator and discriminator
 generator = Generator(z_dim=z_dim, img_channels=img_channels).to(device)
