@@ -169,10 +169,6 @@ for epoch in range(num_epochs):
         gradient_penalty = compute_gradient_penalty(discriminator, real, fake.detach(), device)
         loss_disc = real_loss + fake_loss + lambda_gp * gradient_penalty
 
-        # Calculate Gradient Penalty
-        gradient_penalty = compute_gradient_penalty(discriminator, real.data, fake.data)
-        loss_disc += lambda_gp * gradient_penalty
-
         loss_disc.backward()
         opt_disc.step()
 
