@@ -165,32 +165,37 @@ for epoch in range(num_epochs):
         noise = torch.randn(batch_size, z_dim, 1, 1, device=device)
         fake = generator(noise)
 
+        # Adjust targets to match discriminator output shape [batch_size, 1]
+        real_labels = torch.ones(batch_size, 1, device=device)  # Shape [100, 1] for real images
+        fake_labels = torch.zeros(batch_size, 1, device=device)  # Shape [100, 1] for fake images
+
         ### Train Discriminator with Gradient Penalty
         discriminator.zero_grad()
-        real_labels = torch.ones(batch_size, 1, device=device)  
-        fake_labels = torch.zeros(batch_size, 1, device=device)
+        real_output = discriminator(real)
+        fake_output = discriminator(fake.detach())
         
-        real_loss = criterion(real_output, torch.ones(batch_size, device=device))
-        fake_loss = criterion(fake_output, torch.zeros(batch_size, device=device))
+        real_loss = criterion(real_output, real_labels)
+        fake_loss = criterion(fake_output, fake_labels)
+        
+        # Calculate gradient penalty on interpolated data
         gradient_penalty = compute_gradient_penalty(discriminator, real, fake.detach(), device)
         loss_disc = real_loss + fake_loss + lambda_gp * gradient_penalty
 
         loss_disc.backward()
         opt_disc.step()
 
-        ### Train Generator
-        generator.zero_grad()
-        gen_loss = criterion(discriminator(fake), torch.ones(batch_size, device=device))
-        gen_loss.backward()
-        opt_gen.step()
-
+        ### Train Generator less frequently
+        if batch_idx % n_critic == 0:
+            generator.zero_grad()
+            # Discriminator output for generated images
+            gen_output = discriminator(fake)
+            gen_loss = criterion(gen_output, real_labels)  # Use real_labels here because generator's goal is to fool discriminator
+            gen_loss.backward()
+            opt_gen.step()
+        
+        # Logging
         if (epoch + 1) % 1 == 0:
             torch.save(generator.state_dict(), 'generator.pth')
             torch.save(discriminator.state_dict(), 'discriminator.pth')
             print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, Loss G: {gen_loss:.4f}")
-
-
-    print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, loss G: {loss_gen:.4f}")
-    with open('model_history.txt', 'a') as file:
-        file.write(f"Epoch [{epoch+1}/{num_epochs}] Loss_D: {loss_disc:.4f}, loss_G: {loss_gen:.4f} \n")
 
