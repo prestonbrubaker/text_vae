@@ -184,14 +184,13 @@ for epoch in range(num_epochs):
         loss_disc.backward()
         opt_disc.step()
 
-        ### Train Generator less frequently
-        if batch_idx % n_critic == 0:
-            generator.zero_grad()
-            # Discriminator output for generated images
-            gen_output = discriminator(fake)
-            gen_loss = criterion(gen_output, real_labels)  # Use real_labels here because generator's goal is to fool discriminator
-            gen_loss.backward()
-            opt_gen.step()
+
+        generator.zero_grad()
+        # Discriminator output for generated images
+        gen_output = discriminator(fake)
+        gen_loss = criterion(gen_output, real_labels)  # Use real_labels here because generator's goal is to fool discriminator
+        gen_loss.backward()
+        opt_gen.step()
         
         # Logging
         if (epoch + 1) % 1 == 0:
