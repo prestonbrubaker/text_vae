@@ -64,7 +64,7 @@ print("Using: " + str(device))
 z_dim = 100
 learning_rate_gen = 0.005
 learning_rate_disc = 0.001
-batch_size = 25
+batch_size = 50
 img_channels = 1
 img_size = 256
 num_epochs = 5000
@@ -141,7 +141,7 @@ for epoch in range(num_epochs):
         disc_fake = discriminator(fake.detach()).view(-1)
         loss_disc_fake = criterion(disc_fake, torch.zeros_like(disc_fake))
         loss_disc = (loss_disc_real + loss_disc_fake) / 2
-        if(loss_disc < 0.1):
+        if(loss_disc > 0.1):
             discriminator.zero_grad()
             loss_disc.backward()
             opt_disc.step()
