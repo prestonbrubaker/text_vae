@@ -188,13 +188,17 @@ for epoch in range(num_epochs):
         generator.zero_grad()
         # Discriminator output for generated images
         gen_output = discriminator(fake)
-        gen_loss = criterion(gen_output, real_labels)  # Use real_labels here because generator's goal is to fool discriminator
+        gen_loss = criterion(gen_output, real_labels)
         gen_loss.backward()
         opt_gen.step()
         
     # Logging
+    print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, Loss G: {gen_loss:.4f}")
+    with open('model_history.txt', 'a') as file:
+        file.write(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, Loss G: {gen_loss:.4f} \n")
+    with
     if (epoch + 1) % 1 == 0:
         torch.save(generator.state_dict(), 'generator.pth')
         torch.save(discriminator.state_dict(), 'discriminator.pth')
-        print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, Loss G: {gen_loss:.4f}")
+        
 
