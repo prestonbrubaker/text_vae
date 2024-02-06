@@ -192,9 +192,9 @@ for epoch in range(num_epochs):
         gen_loss.backward()
         opt_gen.step()
         
-        # Logging
-        if (epoch + 1) % 1 == 0:
-            torch.save(generator.state_dict(), 'generator.pth')
-            torch.save(discriminator.state_dict(), 'discriminator.pth')
-            print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, Loss G: {gen_loss:.4f}")
+    # Logging
+    if (epoch + 1) % 1 == 0:
+        torch.save(generator.state_dict(), 'generator.pth')
+        torch.save(discriminator.state_dict(), 'discriminator.pth')
+        print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, Loss G: {gen_loss:.4f}")
 
