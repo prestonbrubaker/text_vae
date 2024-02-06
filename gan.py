@@ -36,13 +36,18 @@ class Discriminator(nn.Module):
         super(Discriminator, self).__init__()
         self.disc = nn.Sequential(
             # Input: img_channels x 256 x 256
-            nn.Conv2d(img_channels, 64, 4, 2, 1),  # img: 128x128
+            nn.Conv2d(img_channels, 64, 4, 2, 1),  # Output: 64 x 128 x 128
             nn.LeakyReLU(0.2),
-            self._block(64, 128, 4, 2, 1),    # img: 64x64
-            self._block(128, 256, 4, 2, 1),   # img: 32x32
-            self._block(256, 512, 4, 2, 1),   # img: 16x16
-            nn.Conv2d(512, 1, 4, 1, 0),  # img: 1x1
-            nn.Sigmoid()  # Output: 1
+            self._block(64, 128, 4, 2, 1),         # Output: 128 x 64 x 64
+            self._block(128, 256, 4, 2, 1),        # Output: 256 x 32 x 32
+            self._block(256, 512, 4, 2, 1),        # Output: 512 x 16 x 16
+            nn.Conv2d(512, 512, 4, 2, 1),          # Output: 512 x 8 x 8
+            nn.LeakyReLU(0.2),
+            nn.Conv2d(512, 512, 4, 2, 1),          # Output: 512 x 4 x 4
+            nn.LeakyReLU(0.2),
+            # Ensure the final output is 1x1
+            nn.Conv2d(512, 1, 4, 1, 0),            # Output: 1 x 1 x 1
+            nn.Sigmoid()
         )
 
     def _block(self, in_channels, out_channels, kernel_size, stride, padding):
@@ -53,11 +58,8 @@ class Discriminator(nn.Module):
         )
 
     def forward(self, x):
-        # Example diagnostic print statement
-        print("Before final Conv2d:", x.size())
         x = self.disc(x)
-        print("After final Conv2d:", x.size())
-        return x.view(-1)
+        return x.view(x.size(0), -1)
 
 def compute_gradient_penalty(D, real_samples, fake_samples, device):
     """Calculates the gradient penalty for WGAN-GP."""
