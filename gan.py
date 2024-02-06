@@ -53,7 +53,11 @@ class Discriminator(nn.Module):
         )
 
     def forward(self, x):
-        return self.disc(x).view(-1)
+        # Example diagnostic print statement
+        print("Before final Conv2d:", x.size())
+        x = self.disc(x)
+        print("After final Conv2d:", x.size())
+        return x.view(-1)
 
 def compute_gradient_penalty(D, real_samples, fake_samples, device):
     """Calculates the gradient penalty for WGAN-GP."""
