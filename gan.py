@@ -56,6 +56,30 @@ class Discriminator(nn.Module):
     def forward(self, x):
         return self.disc(x).view(-1)
 
+def compute_gradient_penalty(D, real_samples, fake_samples):
+    """Calculates the gradient penalty loss for WGAN GP"""
+    # Random weight term for interpolation between real and fake samples
+    alpha = torch.rand((real_samples.size(0), 1, 1, 1), device=device)
+    # Get random interpolation between real and fake samples
+    interpolates = (alpha * real_samples + ((1 - alpha) * fake_samples)).requires_grad_(True)
+    d_interpolates = D(interpolates)
+    fake = torch.ones(d_interpolates.shape, device=device, requires_grad=False)
+    
+    # Get gradient w.r.t. interpolates
+    gradients = torch.autograd.grad(
+        outputs=d_interpolates,
+        inputs=interpolates,
+        grad_outputs=fake,
+        create_graph=True,
+        retain_graph=True,
+        only_inputs=True,
+    )[0]
+    
+    gradients_norm = torch.sqrt(torch.sum(gradients ** 2, dim=[1,2,3]) + 1e-12)
+    gradient_penalty = ((gradients_norm - 1) ** 2).mean()
+    return gradient_penalty
+
+
 
 # Device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -128,40 +152,40 @@ dataset = CustomImageDataset(root_dir='photos_2', transform=transform)
 loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 
+lambda_gp = 10  # Gradient penalty lambda hyperparameter
+
 for epoch in range(num_epochs):
     for batch_idx, real in enumerate(loader):
-        #print("Batch: " + str(batch_idx))
         real = real.to(device)
         batch_size = real.size(0)
         noise = torch.randn(batch_size, z_dim, 1, 1, device=device)
         fake = generator(noise)
 
-        ### Train Discriminator: max log(D(real)) + log(1 - D(G(z)))
-        disc_real = discriminator(real).view(-1)
-        loss_disc_real = criterion(disc_real, torch.ones_like(disc_real))
-        disc_fake = discriminator(fake.detach()).view(-1)
-        loss_disc_fake = criterion(disc_fake, torch.zeros_like(disc_fake))
-        loss_disc = (loss_disc_real + loss_disc_fake) / 2
-        value = random.gauss(mu=0.2, sigma=0.1)
-        if(value < 0):
-            value = 0
-        if(loss_disc > value):
-            discriminator.zero_grad()
-            loss_disc.backward()
-            opt_disc.step()
+        ### Train Discriminator with Gradient Penalty
+        discriminator.zero_grad()
+        real_loss = criterion(discriminator(real), torch.ones(batch_size, device=device))
+        fake_loss = criterion(discriminator(fake.detach()), torch.zeros(batch_size, device=device))
+        loss_disc = (real_loss + fake_loss) / 2
 
-        ### Train Generator: min log(1 - D(G(z))) <-> max log(D(G(z))
-        output = discriminator(fake).view(-1)
-        loss_gen = criterion(output, torch.ones_like(output))
-        generator.zero_grad()
-        loss_gen.backward()
-        opt_gen.step()
+        # Calculate Gradient Penalty
+        gradient_penalty = compute_gradient_penalty(discriminator, real.data, fake.data)
+        loss_disc += lambda_gp * gradient_penalty
 
-    # Save generator model every 1 epoch(s)
-    if (epoch + 1) % 1 == 0:
-        torch.save(generator.state_dict(), f'generator.pth')
-        torch.save(discriminator.state_dict(), f'discriminator.pth')
-        print(f"Generator and discriminator model saved at epoch {epoch+1}")
+        loss_disc.backward()
+        opt_disc.step()
+
+        ### Train Generator
+        if batch_idx % n_critic == 0:
+            generator.zero_grad()
+            gen_loss = criterion(discriminator(fake), torch.ones(batch_size, device=device))
+            gen_loss.backward()
+            opt_gen.step()
+
+        if (epoch + 1) % 1 == 0:
+            torch.save(generator.state_dict(), 'generator.pth')
+            torch.save(discriminator.state_dict(), 'discriminator.pth')
+            print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, Loss G: {gen_loss:.4f}")
+
 
     print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, loss G: {loss_gen:.4f}")
     with open('model_history.txt', 'a') as file:
