@@ -167,8 +167,9 @@ for epoch in range(num_epochs):
 
         ### Train Discriminator with Gradient Penalty
         discriminator.zero_grad()
-        real_output = discriminator(real).view(batch_size)
-        fake_output = discriminator(fake.detach()).view(batch_size)
+        real_labels = torch.ones(batch_size, 1, device=device)  
+        fake_labels = torch.zeros(batch_size, 1, device=device)
+        
         real_loss = criterion(real_output, torch.ones(batch_size, device=device))
         fake_loss = criterion(fake_output, torch.zeros(batch_size, device=device))
         gradient_penalty = compute_gradient_penalty(discriminator, real, fake.detach(), device)
