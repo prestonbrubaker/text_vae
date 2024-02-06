@@ -142,7 +142,10 @@ for epoch in range(num_epochs):
         disc_fake = discriminator(fake.detach()).view(-1)
         loss_disc_fake = criterion(disc_fake, torch.zeros_like(disc_fake))
         loss_disc = (loss_disc_real + loss_disc_fake) / 2
-        if(loss_disc > 0.1 * random.uniform(0,1)):
+        value = random.gauss(mu=0.1, sigma=0.02)
+        if(value < 0):
+            value = 0
+        if(loss_disc > value):
             discriminator.zero_grad()
             loss_disc.backward()
             opt_disc.step()
