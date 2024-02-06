@@ -196,7 +196,6 @@ for epoch in range(num_epochs):
     print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, Loss G: {gen_loss:.4f}")
     with open('model_history.txt', 'a') as file:
         file.write(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, Loss G: {gen_loss:.4f} \n")
-    with
     if (epoch + 1) % 1 == 0:
         torch.save(generator.state_dict(), 'generator.pth')
         torch.save(discriminator.state_dict(), 'discriminator.pth')
