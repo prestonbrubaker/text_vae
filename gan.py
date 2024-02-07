@@ -44,7 +44,7 @@ class Discriminator(nn.Module):
             nn.Conv2d(512, 512, 4, 2, 1),          # Output: 512 x 8 x 8
             nn.LeakyReLU(0.2),
             nn.Conv2d(512, 512, 4, 2, 1),          # Output: 512 x 4 x 4
-            nn.LeakyReLU(0.2),
+            #nn.LeakyReLU(0.2),
             # Ensure the final output is 1x1
             nn.Conv2d(512, 1, 4, 1, 0),            # Output: 1 x 1 x 1
             nn.Sigmoid()
