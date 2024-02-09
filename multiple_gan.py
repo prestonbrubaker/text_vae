@@ -137,7 +137,6 @@ learning_rate_gen_2 = 0.001
 learning_rate_disc = 0.00001
 learning_rate_disc_2 = 0.00001
 batch_size = 10
-batch_size_2 = 10
 img_channels = 1
 img_size = 256
 num_epochs = 5000
@@ -230,8 +229,7 @@ for epoch in range(num_epochs):
         noise = torch.randn(batch_size, z_dim, 1, 1, device=device)
         fake = generator(noise)
 
-        batch_size_2 = real.size(0)
-        noise_2 = torch.randn(batch_size_2, z_dim_2, 1, 1, device=device)
+        noise_2 = torch.randn(batch_size, z_dim_2, 1, 1, device=device)
         fake_2 = generator_2(noise_2)
 
         # Adjust targets to match discriminator output shape [batch_size, 1]
@@ -239,51 +237,58 @@ for epoch in range(num_epochs):
         fake_labels = torch.zeros(batch_size, 1, device=device)  # Shape [100, 1] for fake images
 
         # Adjust targets to match discriminator output shape [batch_size, 1]
-        real_labels_2 = torch.ones(batch_size_2, 1, device=device)  # Shape [100, 1] for real images
-        fake_labels_2 = torch.zeros(batch_size_2, 1, device=device)  # Shape [100, 1] for fake images
+        real_labels_2 = torch.ones(batch_size, 1, device=device)  # Shape [100, 1] for real images
+        fake_labels_2 = torch.zeros(batch_size, 1, device=device)  # Shape [100, 1] for fake images
         
-        ### Train Discriminator
-        discriminator.zero_grad()
-        real_output = discriminator(real)
-        fake_output = discriminator(fake.detach())
+        # Discriminator 1 Loss
+        disc_real = discriminator(real).view(-1)
+        loss_disc_real = criterion(disc_real, real_labels)
         
-        real_loss = criterion(real_output, real_labels)
-        fake_loss = criterion(fake_output, fake_labels)
+        disc_fake = discriminator(fake.detach()).view(-1)
+        loss_disc_fake = criterion(disc_fake, fake_labels)
         
-        loss_disc = real_loss + fake_loss
-
+        disc_fake_2 = discriminator(fake_2.detach()).view(-1)
+        loss_disc_fake_2 = criterion(disc_fake_2, fake_labels)
+        
+        loss_disc = (loss_disc_real + (loss_disc_fake + loss_disc_fake_2) / 2) / 2
         loss_disc.backward()
         opt_disc.step()
-
-        ### Train Discriminator_2
-        discriminator_2.zero_grad()
-        real_output_2 = discriminator_2(real)
-        fake_output_2 = discriminator_2(fake_2.detach())
         
-        real_loss_2 = criterion(real_output_2, real_labels_2)
-        fake_loss_2 = criterion(fake_output_2, fake_labels_2)
+        # Discriminator 2 Loss
+        disc_real_2 = discriminator_2(real).view(-1)
+        loss_disc_real_2 = criterion(disc_real_2, real_labels_2)
         
-        loss_disc_2 = real_loss_2 + fake_loss_2
-
+        disc_fake = discriminator_2(fake.detach()).view(-1)
+        loss_disc_fake = criterion(disc_fake, fake_labels_2)
+        
+        disc_fake_2 = discriminator_2(fake_2.detach()).view(-1)
+        loss_disc_fake_2 = criterion(disc_fake_2, fake_labels_2)
+        
+        loss_disc_2 = (loss_disc_real_2 + (loss_disc_fake + loss_disc_fake_2) / 2) / 2
         loss_disc_2.backward()
         opt_disc_2.step()
 
 
-        ### Train Generator
-        generator.zero_grad()
-        # Discriminator output for generated images
-        gen_output = discriminator(fake)
+        # Generator 1 Loss
+        gen_output = discriminator(fake).view(-1)
         gen_loss = criterion(gen_output, real_labels)
-        gen_loss.backward()
+        
+        gen_output_2 = discriminator_2(fake).view(-1)
+        gen_loss_2 = criterion(gen_output_2, real_labels)
+        
+        total_gen_loss = (gen_loss + gen_loss_2) / 2
+        total_gen_loss.backward()
         opt_gen.step()
-
-
-        ### Train Generator_2
-        generator_2.zero_grad()
-        # Discriminator_2 output for generated images
-        gen_output_2 = discriminator_2(fake_2)
+        
+        # Generator 2 Loss
+        gen_output = discriminator(fake_2).view(-1)
+        gen_loss = criterion(gen_output, real_labels_2)
+        
+        gen_output_2 = discriminator_2(fake_2).view(-1)
         gen_loss_2 = criterion(gen_output_2, real_labels_2)
-        gen_loss_2.backward()
+        
+        total_gen_loss_2 = (gen_loss + gen_loss_2) / 2
+        total_gen_loss_2.backward()
         opt_gen_2.step()
 
         
