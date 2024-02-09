@@ -136,7 +136,7 @@ learning_rate_gen = 0.001
 learning_rate_gen_2 = 0.001
 learning_rate_disc = 0.00001
 learning_rate_disc_2 = 0.00001
-batch_size = 10
+batch_size = 50
 img_channels = 1
 img_size = 256
 num_epochs = 5000
@@ -225,7 +225,7 @@ loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 for epoch in range(num_epochs):
     for batch_idx, real in enumerate(loader):
         
-        print(str(batch_idx))
+        #print(str(batch_idx))
         
         real = real.to(device)
         batch_size = real.size(0)
