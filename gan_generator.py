@@ -32,7 +32,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 z_dim = 100
 generator = Generator(z_dim).to(device)
-generator.load_state_dict(torch.load("generator.pth", map_location=device))
+generator.load_state_dict(torch.load("generator_2.pth", map_location=device))
 generator.eval()
 
 output_folder = "generated_photos"
