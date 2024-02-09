@@ -304,22 +304,22 @@ for epoch in range(num_epochs):
         torch.save(discriminator_2.state_dict(), 'discriminator_2.pth')
         print("Models all saved")
     
-    epsilon = 0.000001
+    epsilon = 0.00001
 
-    if(total_gen_loss < epsilon):
+    if(total_gen_loss <= epsilon):
         generator.load_state_dict(torch.load(generator_2_path, map_location=device))
         generator.to(device)
         print("Generator model and was killed and revived as Generator_2")
-    if(total_gen_loss_2 < epsilon):
+    if(total_gen_loss_2 <= epsilon):
         generator_2.load_state_dict(torch.load(generator_path, map_location=device))
         generator_2.to(device)
         print("Generator_2 model and was killed and revived as Generator")
             
-    if(loss_disc < epsilon):
+    if(loss_disc <= epsilon or loss_disc >= 50 - epsilon):
         discriminator.load_state_dict(torch.load(discriminator_2_path, map_location=device))
         discriminator.to(device)
         print("Discriminator model and was killed and revived as Discriminator_2")
-    if(loss_disc_2 < epsilon):
+    if(loss_disc_2 <= epsilon or loss_disc_2 >= 50 - epsilon):
         discriminator_2.load_state_dict(torch.load(discriminator_path, map_location=device))
         discriminator_2.to(device)
         print("Discriminator_2 model and was killed and revived as Discriminator_2")
