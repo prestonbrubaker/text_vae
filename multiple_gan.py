@@ -306,11 +306,11 @@ for epoch in range(num_epochs):
     
     epsilon = 0.000001
 
-    if(gen_loss < epsilon):
+    if(total_gen_loss < epsilon):
         generator.load_state_dict(torch.load(generator_2_path, map_location=device))
         generator.to(device)
         print("Generator model and was killed and revived as Generator_2")
-    if(gen_loss_2 < epsilon):
+    if(total_gen_loss_2 < epsilon):
         generator_2.load_state_dict(torch.load(generator_path, map_location=device))
         generator_2.to(device)
         print("Generator_2 model and was killed and revived as Generator")
