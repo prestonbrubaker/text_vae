@@ -31,6 +31,8 @@ class Generator(nn.Module):
 
     def forward(self, x):
         return self.gen(x)
+
+
 class Discriminator(nn.Module):
     def __init__(self, img_channels=1):
         super(Discriminator, self).__init__()
