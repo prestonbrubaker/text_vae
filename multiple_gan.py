@@ -184,9 +184,9 @@ else:
 
 # Optimizers
 opt_gen = optim.Adam(generator.parameters(), lr=learning_rate_gen, betas=(0.5, 0.999))
-opt_gen_2 = optim.Adam(generator_2.parameters(), lr=learning_rate_gen, betas=(0.5, 0.999))
+opt_gen_2 = optim.Adam(generator_2.parameters(), lr=learning_rate_gen_2, betas=(0.5, 0.999))
 opt_disc = optim.Adam(discriminator.parameters(), lr=learning_rate_disc, betas=(0.5, 0.999))
-opt_disc_2 = optim.Adam(discriminator_2.parameters(), lr=learning_rate_disc, betas=(0.5, 0.999))
+opt_disc_2 = optim.Adam(discriminator_2.parameters(), lr=learning_rate_disc_2, betas=(0.5, 0.999))
 
 # Loss function
 criterion = nn.BCELoss()
@@ -257,8 +257,8 @@ for epoch in range(num_epochs):
 
         ### Train Discriminator_2
         discriminator_2.zero_grad()
-        real_output_2 = discriminator(real)
-        fake_output_2 = discriminator(fake_2.detach())
+        real_output_2 = discriminator_2(real)
+        fake_output_2 = discriminator_2(fake_2.detach())
         
         real_loss_2 = criterion(real_output_2, real_labels_2)
         fake_loss_2 = criterion(fake_output_2, fake_labels_2)
@@ -281,7 +281,7 @@ for epoch in range(num_epochs):
         ### Train Generator_2
         generator_2.zero_grad()
         # Discriminator_2 output for generated images
-        gen_output_2 = discriminator(fake_2)
+        gen_output_2 = discriminator_2(fake_2)
         gen_loss_2 = criterion(gen_output_2, real_labels_2)
         gen_loss_2.backward()
         opt_gen_2.step()
