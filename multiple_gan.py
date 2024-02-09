@@ -242,13 +242,14 @@ for epoch in range(num_epochs):
         
         # Discriminator 1 Loss
         disc_real = discriminator(real).view(-1)
-        loss_disc_real = criterion(disc_real, real_labels)
+        loss_disc_real = criterion(disc_real, real_labels.view(-1))
         
         disc_fake = discriminator(fake.detach()).view(-1)
-        loss_disc_fake = criterion(disc_fake, fake_labels)
+        loss_disc_fake = criterion(disc_fake, fake_labels.view(-1))
         
         disc_fake_2 = discriminator(fake_2.detach()).view(-1)
-        loss_disc_fake_2 = criterion(disc_fake_2, fake_labels)
+        loss_disc_fake_2 = criterion(disc_fake_2, fake_labels.view(-1))
+
         
         loss_disc = (loss_disc_real + (loss_disc_fake + loss_disc_fake_2) / 2) / 2
         loss_disc.backward()
@@ -256,13 +257,13 @@ for epoch in range(num_epochs):
         
         # Discriminator 2 Loss
         disc_real_2 = discriminator_2(real).view(-1)
-        loss_disc_real_2 = criterion(disc_real_2, real_labels_2)
+        loss_disc_real_2 = criterion(disc_real_2, real_labels_2.view(-1))
         
         disc_fake = discriminator_2(fake.detach()).view(-1)
-        loss_disc_fake = criterion(disc_fake, fake_labels_2)
+        loss_disc_fake = criterion(disc_fake, fake_labels_2.view(-1))
         
         disc_fake_2 = discriminator_2(fake_2.detach()).view(-1)
-        loss_disc_fake_2 = criterion(disc_fake_2, fake_labels_2)
+        loss_disc_fake_2 = criterion(disc_fake_2, fake_labels_2.view(-1))
         
         loss_disc_2 = (loss_disc_real_2 + (loss_disc_fake + loss_disc_fake_2) / 2) / 2
         loss_disc_2.backward()
@@ -271,10 +272,11 @@ for epoch in range(num_epochs):
 
         # Generator 1 Loss
         gen_output = discriminator(fake).view(-1)
-        gen_loss = criterion(gen_output, real_labels)
+        gen_loss = criterion(gen_output, real_labels.view(-1))
         
         gen_output_2 = discriminator_2(fake).view(-1)
-        gen_loss_2 = criterion(gen_output_2, real_labels)
+        gen_loss_2 = criterion(gen_output_2, real_labels.view(-1))
+
         
         total_gen_loss = (gen_loss + gen_loss_2) / 2
         total_gen_loss.backward()
@@ -282,10 +284,10 @@ for epoch in range(num_epochs):
         
         # Generator 2 Loss
         gen_output = discriminator(fake_2).view(-1)
-        gen_loss = criterion(gen_output, real_labels_2)
+        gen_loss = criterion(gen_output, real_labels_2.view(-1))
         
         gen_output_2 = discriminator_2(fake_2).view(-1)
-        gen_loss_2 = criterion(gen_output_2, real_labels_2)
+        gen_loss_2 = criterion(gen_output_2, real_labels_2.view(-1))
         
         total_gen_loss_2 = (gen_loss + gen_loss_2) / 2
         total_gen_loss_2.backward()
