@@ -7,6 +7,8 @@ from PIL import Image
 import os
 import random
 
+torch.autograd.set_detect_anomaly(True)
+
 
 class Generator(nn.Module):
     def __init__(self, z_dim=100, img_channels=1):
