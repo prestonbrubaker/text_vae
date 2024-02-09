@@ -70,7 +70,6 @@ class Discriminator(nn.Module):
             self._block(128, 256, 4, 2, 1),        # Output: 256 x 32 x 32
             self._block(256, 512, 4, 2, 1),        # Output: 512 x 16 x 16
             nn.Conv2d(512, 512, 4, 2, 1),          # Output: 512 x 8 x 8
-            nn.LeakyReLU(0.2),
             nn.Conv2d(512, 512, 4, 2, 1),          # Output: 512 x 4 x 4
             # Ensure the final output is 1x1
             nn.Conv2d(512, 1, 4, 1, 0),            # Output: 1 x 1 x 1
@@ -81,7 +80,6 @@ class Discriminator(nn.Module):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(0.2)
         )
 
     def forward(self, x):
@@ -101,7 +99,6 @@ class Discriminator_2(nn.Module):
             self._block(128, 256, 4, 2, 1),        # Output: 256 x 32 x 32
             self._block(256, 512, 4, 2, 1),        # Output: 512 x 16 x 16
             nn.Conv2d(512, 512, 4, 2, 1),          # Output: 512 x 8 x 8
-            nn.LeakyReLU(0.2),
             nn.Conv2d(512, 512, 4, 2, 1),          # Output: 512 x 4 x 4
             # Ensure the final output is 1x1
             nn.Conv2d(512, 1, 4, 1, 0),            # Output: 1 x 1 x 1
@@ -112,7 +109,6 @@ class Discriminator_2(nn.Module):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(0.2)
         )
 
     def forward(self, x):
