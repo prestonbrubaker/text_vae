@@ -297,25 +297,25 @@ for epoch in range(num_epochs):
         opt_gen_2.step()
 
         
-        epsilon = 0.000001
+    epsilon = 0.000001
 
-        if(gen_loss < epsilon):
-            generator.load_state_dict(torch.load(generator_2_path, map_location=device))
-            generator.to(device)
-            print("Generator model and was killed and revived as Generator_2")
-        if(gen_loss_2 < epsilon):
-            generator_2.load_state_dict(torch.load(generator_path, map_location=device))
-            generator_2.to(device)
-            print("Generator_2 model and was killed and revived as Generator")
+    if(gen_loss < epsilon):
+        generator.load_state_dict(torch.load(generator_2_path, map_location=device))
+        generator.to(device)
+        print("Generator model and was killed and revived as Generator_2")
+    if(gen_loss_2 < epsilon):
+        generator_2.load_state_dict(torch.load(generator_path, map_location=device))
+        generator_2.to(device)
+        print("Generator_2 model and was killed and revived as Generator")
             
-        if(loss_disc < epsilon):
-            discriminator.load_state_dict(torch.load(discriminator_2_path, map_location=device))
-            discriminator.to(device)
-            print("Discriminator model and was killed and revived as Discriminator_2")
-        if(loss_disc_2 < epsilon):
-            discriminator_2.load_state_dict(torch.load(discriminator_path, map_location=device))
-            discriminator_2.to(device)
-            print("Discriminator_2 model and was killed and revived as Discriminator_2")
+    if(loss_disc < epsilon):
+        discriminator.load_state_dict(torch.load(discriminator_2_path, map_location=device))
+        discriminator.to(device)
+        print("Discriminator model and was killed and revived as Discriminator_2")
+    if(loss_disc_2 < epsilon):
+        discriminator_2.load_state_dict(torch.load(discriminator_path, map_location=device))
+        discriminator_2.to(device)
+        print("Discriminator_2 model and was killed and revived as Discriminator_2")
         
         
     # Logging
