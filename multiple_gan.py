@@ -327,5 +327,6 @@ for epoch in range(num_epochs):
         torch.save(generator_2.state_dict(), 'generator_2.pth')
         torch.save(discriminator.state_dict(), 'discriminator.pth')
         torch.save(discriminator_2.state_dict(), 'discriminator_2.pth')
+        print("Models all saved")
         
 
