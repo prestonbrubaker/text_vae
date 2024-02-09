@@ -144,9 +144,11 @@ num_epochs = 5000
 
 # Initialize generator and discriminator
 generator = Generator(z_dim=z_dim, img_channels=img_channels).to(device)
-generator_2 = Generator(z_dim=z_dim, img_channels=img_channels).to(device)
+generator_2 = Generator_2(z_dim=z_dim, img_channels=img_channels).to(device)
+
+
 discriminator = Discriminator(img_channels=img_channels).to(device)
-discriminator_2 = Discriminator(img_channels=img_channels).to(device)
+discriminator_2 = Discriminator_2(img_channels=img_channels).to(device)
 
 # Attempt to load existing models
 generator_path = 'generator.pth'
