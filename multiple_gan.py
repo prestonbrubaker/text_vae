@@ -224,6 +224,9 @@ loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 for epoch in range(num_epochs):
     for batch_idx, real in enumerate(loader):
+        
+        print(str(batch_idx))
+        
         real = real.to(device)
         batch_size = real.size(0)
         noise = torch.randn(batch_size, z_dim, 1, 1, device=device)
