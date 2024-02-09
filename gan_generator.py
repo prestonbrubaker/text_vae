@@ -27,6 +27,7 @@ class Generator(nn.Module):
 
     def forward(self, x):
         return self.gen(x)
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 z_dim = 100
