@@ -63,8 +63,6 @@ class Generator_2(nn.Module):
 class Discriminator(nn.Module):
     def __init__(self, img_channels=1):
         super(Discriminator, self).__init__()
-        def __init__(self, img_channels=1):
-        super(Discriminator, self).__init__()
         self.disc = nn.Sequential(
             # Input: img_channels x 256 x 256
             nn.Conv2d(img_channels, 64, 4, 2, 1),  # Output: 64 x 128 x 128
@@ -98,8 +96,6 @@ class Discriminator(nn.Module):
 class Discriminator_2(nn.Module):
     def __init__(self, img_channels=1):
         super(Discriminator_2, self).__init__()
-        def __init__(self, img_channels=1):
-        super(Discriminator, self).__init__()
         self.disc = nn.Sequential(
             # Input: img_channels x 256 x 256
             nn.Conv2d(img_channels, 64, 4, 2, 1),  # Output: 64 x 128 x 128
