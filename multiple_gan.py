@@ -296,7 +296,14 @@ for epoch in range(num_epochs):
         total_gen_loss_2.backward()
         opt_gen_2.step()
 
-        
+
+    if (epoch + 1) % 1 == 0:
+        torch.save(generator.state_dict(), 'generator.pth')
+        torch.save(generator_2.state_dict(), 'generator_2.pth')
+        torch.save(discriminator.state_dict(), 'discriminator.pth')
+        torch.save(discriminator_2.state_dict(), 'discriminator_2.pth')
+        print("Models all saved")
+    
     epsilon = 0.000001
 
     if(gen_loss < epsilon):
@@ -322,11 +329,6 @@ for epoch in range(num_epochs):
     print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, Loss G: {gen_loss:.4f} Loss D2: {loss_disc_2:.4f}, Loss G2: {gen_loss_2:.4f}")
     with open('model_history.txt', 'a') as file:
         file.write(f"Epoch {epoch+1} Loss D: {loss_disc:.4f}, Loss G: {gen_loss:.4f} Loss D2: {loss_disc_2:.4f}, Loss G2: {gen_loss_2:.4f} \n")
-    if (epoch + 1) % 1 == 0:
-        torch.save(generator.state_dict(), 'generator.pth')
-        torch.save(generator_2.state_dict(), 'generator_2.pth')
-        torch.save(discriminator.state_dict(), 'discriminator.pth')
-        torch.save(discriminator_2.state_dict(), 'discriminator_2.pth')
-        print("Models all saved")
+    
         
 
