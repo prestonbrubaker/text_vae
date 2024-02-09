@@ -133,7 +133,7 @@ print("Using: " + str(device))
 z_dim = 100
 z_dim_2 = 100
 learning_rate_gen = 0.000001
-learning_rate_gen_2 = 0.001
+learning_rate_gen_2 = 0.00001
 learning_rate_disc = 0.00000001
 learning_rate_disc_2 = 0.00001
 batch_size = 50
@@ -326,9 +326,9 @@ for epoch in range(num_epochs):
         
         
     # Logging
-    print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, Loss G: {gen_loss:.4f} Loss D2: {loss_disc_2:.4f}, Loss G2: {gen_loss_2:.4f}")
+    print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, Loss G: {total_gen_loss:.4f} Loss D2: {loss_disc_2:.4f}, Loss G2: {total_gen_loss_2:.4f}")
     with open('model_history.txt', 'a') as file:
-        file.write(f"Epoch {epoch+1} Loss D: {loss_disc:.4f}, Loss G: {gen_loss:.4f} Loss D2: {loss_disc_2:.4f}, Loss G2: {gen_loss_2:.4f} \n")
+        file.write(f"Epoch {epoch+1} Loss D: {loss_disc:.4f}, Loss G: {total_gen_loss:.4f} Loss D2: {loss_disc_2:.4f}, Loss G2: {total_gen_loss_2:.4f} \n")
     
         
 
