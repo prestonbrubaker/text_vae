@@ -232,7 +232,7 @@ for epoch in range(num_epochs):
 
         batch_size_2 = real.size(0)
         noise_2 = torch.randn(batch_size_2, z_dim_2, 1, 1, device=device)
-        fake_2 = generator(noise_2)
+        fake_2 = generator_2(noise_2)
 
         # Adjust targets to match discriminator output shape [batch_size, 1]
         real_labels = torch.ones(batch_size, 1, device=device)  # Shape [100, 1] for real images
