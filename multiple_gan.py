@@ -130,8 +130,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using: " + str(device))
 
 # Hyperparameters
-z_dim = 20
-z_dim_2 = 20
+z_dim = 200
+z_dim_2 = 200
 learning_rate_gen = 0.01
 learning_rate_gen_2 = 0.0000000001
 learning_rate_disc = 0.0005
