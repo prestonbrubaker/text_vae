@@ -36,7 +36,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using: " + str(device))
 
 
-z_dim = 20
+z_dim = 200
 generator = Generator(z_dim).to(device)
 generator.load_state_dict(torch.load("generator.pth", map_location=device))
 generator.eval()
