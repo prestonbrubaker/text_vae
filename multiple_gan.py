@@ -7,7 +7,7 @@ from PIL import Image
 import os
 import random
 
-torch.autograd.set_detect_anomaly(True)
+torch.cuda.empty_cache()
 
 
 class Generator(nn.Module):
