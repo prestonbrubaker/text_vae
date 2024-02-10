@@ -11,7 +11,7 @@ torch.autograd.set_detect_anomaly(True)
 
 
 class Generator(nn.Module):
-    def __init__(self, z_dim=100, img_channels=1):
+    def __init__(self, z_dim, img_channels=1):
         super(Generator, self).__init__()
         self.gen = nn.Sequential(
             # Input: Z_dim x 1 x 1
@@ -35,7 +35,7 @@ class Generator(nn.Module):
         return self.gen(x)
 
 class Generator_2(nn.Module):
-    def __init__(self, z_dim=100, img_channels=1):
+    def __init__(self, z_dim, img_channels=1):
         super(Generator_2, self).__init__()
         self.gen = nn.Sequential(
             # Input: Z_dim x 1 x 1
