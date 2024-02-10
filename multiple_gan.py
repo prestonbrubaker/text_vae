@@ -296,6 +296,8 @@ for epoch in range(num_epochs):
         total_gen_loss_2.backward()
         opt_gen_2.step()
 
+        print(f"Epoch {epoch+1} Sub: {batch_idx} Loss D: {loss_disc:.4f}, Loss G: {total_gen_loss:.4f} Loss D2: {loss_disc_2:.4f}, Loss G2: {total_gen_loss_2:.4f}")
+
 
     if (epoch + 1) % 1 == 0:
         torch.save(generator.state_dict(), 'generator.pth')
