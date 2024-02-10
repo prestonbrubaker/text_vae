@@ -183,7 +183,7 @@ else:
 
 # Optimizers
 
-weight_decay = 1e-4
+weight_decay = 1e-5
 
 opt_gen = optim.Adam(generator.parameters(), lr=learning_rate_gen, betas=(0.5, 0.999), weight_decay=weight_decay)
 opt_gen_2 = optim.Adam(generator_2.parameters(), lr=learning_rate_gen_2, betas=(0.5, 0.999), weight_decay=weight_decay)
