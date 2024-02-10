@@ -297,7 +297,10 @@ for epoch in range(num_epochs):
         total_gen_loss_2.backward()
         opt_gen_2.step()
 
+        # Intra-epoch logging
         print(f"Epoch {epoch+1} Sub: {batch_idx} Loss D: {loss_disc:.4f}, Loss G: {total_gen_loss:.4f} Loss D2: {loss_disc_2:.4f}, Loss G2: {total_gen_loss_2:.4f}")
+        with open('expanded_model_history.txt', 'a') as file:
+            file.write(f"Epoch {epoch+1} Sub: {batch_idx} Loss D: {loss_disc:.4f}, Loss G: {total_gen_loss:.4f} Loss D2: {loss_disc_2:.4f}, Loss G2: {total_gen_loss_2:.4f} \n")
 
         epsilon = 0.00001
     
