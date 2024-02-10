@@ -130,13 +130,13 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using: " + str(device))
 
 # Hyperparameters
-z_dim = 100
-z_dim_2 = 100
+z_dim = 20
+z_dim_2 = 20
 learning_rate_gen = 0.001
-learning_rate_gen_2 = 0.01
+learning_rate_gen_2 = 0.002
 learning_rate_disc = 0.00001
-learning_rate_disc_2 = 0.01
-batch_size = 250
+learning_rate_disc_2 = 0.0002
+batch_size = 500
 img_channels = 1
 img_size = 256
 num_epochs = 5000
