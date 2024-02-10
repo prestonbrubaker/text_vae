@@ -66,14 +66,14 @@ class Discriminator(nn.Module):
         self.disc = nn.Sequential(
             # Input: img_channels x 256 x 256
             nn.Conv2d(img_channels, 64, 4, 2, 1),  # Output: 64 x 128 x 128
-            nn.LeakyReLU(0.2),
+            nn.ReLU(),
             self._block(64, 128, 4, 2, 1),         # Output: 128 x 64 x 64
             self._block(128, 256, 4, 2, 1),        # Output: 256 x 32 x 32
             self._block(256, 512, 4, 2, 1),        # Output: 512 x 16 x 16
             nn.Conv2d(512, 512, 4, 2, 1),          # Output: 512 x 8 x 8
-            nn.LeakyReLU(0.2),
+            nn.ReLU(),
             nn.Conv2d(512, 512, 4, 2, 1),          # Output: 512 x 4 x 4
-            nn.LeakyReLU(0.2),
+            nn.ReLU(),
             # Ensure the final output is 1x1
             nn.Conv2d(512, 1, 4, 1, 0),            # Output: 1 x 1 x 1
             nn.Sigmoid()
@@ -83,7 +83,7 @@ class Discriminator(nn.Module):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(0.2)
+            nn.ReLU()
         )
 
     def forward(self, x):
@@ -99,14 +99,14 @@ class Discriminator_2(nn.Module):
         self.disc = nn.Sequential(
             # Input: img_channels x 256 x 256
             nn.Conv2d(img_channels, 64, 4, 2, 1),  # Output: 64 x 128 x 128
-            nn.LeakyReLU(0.2),
+            nn.ReLU(),
             self._block(64, 128, 4, 2, 1),         # Output: 128 x 64 x 64
             self._block(128, 256, 4, 2, 1),        # Output: 256 x 32 x 32
             self._block(256, 512, 4, 2, 1),        # Output: 512 x 16 x 16
             nn.Conv2d(512, 512, 4, 2, 1),          # Output: 512 x 8 x 8
-            nn.LeakyReLU(0.2),
+            nn.ReLU(),
             nn.Conv2d(512, 512, 4, 2, 1),          # Output: 512 x 4 x 4
-            nn.LeakyReLU(0.2),
+            nn.ReLU(),
             # Ensure the final output is 1x1
             nn.Conv2d(512, 1, 4, 1, 0),            # Output: 1 x 1 x 1
             nn.Sigmoid()
@@ -116,7 +116,7 @@ class Discriminator_2(nn.Module):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(0.2)
+            nn.ReLU()
         )
 
     def forward(self, x):
