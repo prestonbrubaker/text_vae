@@ -212,32 +212,28 @@ for epoch in range(num_epochs):
         fake = generator(noise)
 
         
-        # Discriminator 1 Loss
+        # Discriminator Loss
         disc_real = discriminator(real).view(-1)
         loss_disc_real = criterion(disc_real, real_labels.view(-1))
         
         disc_fake = discriminator(fake.detach()).view(-1)
         loss_disc_fake = criterion(disc_fake, fake_labels.view(-1))
         
-        disc_fake_2 = discriminator(fake_2.detach()).view(-1)
-        loss_disc_fake_2 = criterion(disc_fake_2, fake_labels.view(-1))
 
         
-        loss_disc = (loss_disc_real + (loss_disc_fake + loss_disc_fake_2) / 2) / 2
+        loss_disc = (loss_disc_real + loss_disc_fake) / 2
         loss_disc.backward()
         opt_disc.step()
         
 
 
-        # Generator 1 Loss
+        # Generator Loss
         gen_output = discriminator(fake).view(-1)
         gen_loss = criterion(gen_output, real_labels.view(-1))
         
-        gen_output_2 = discriminator_2(fake).view(-1)
-        gen_loss_2 = criterion(gen_output_2, real_labels.view(-1))
 
         
-        total_gen_loss = (gen_loss + gen_loss_2) / 2
+        total_gen_loss = gen_loss
         total_gen_loss.backward()
         opt_gen.step()
         
