@@ -5,7 +5,7 @@ from PIL import Image
 import os
 
 class Generator(nn.Module):
-    def __init__(self, z_dim=100, img_channels=1):
+    def __init__(self, z_dim, img_channels=1):
         super(Generator, self).__init__()
         self.gen = nn.Sequential(
             # Input: Z_dim x 1 x 1
@@ -22,20 +22,21 @@ class Generator(nn.Module):
         return nn.Sequential(
             nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(True)
+            nn.LeakyReLU(0.01)
         )
 
     def forward(self, x):
         return self.gen(x)
 
-#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-device = torch.device("cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+#device = torch.device("cpu")
 
 print("Using: " + str(device))
 
 
-z_dim = 100
+z_dim = 20
 generator = Generator(z_dim).to(device)
 generator.load_state_dict(torch.load("generator_2.pth", map_location=device))
 generator.eval()
