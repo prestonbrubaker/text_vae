@@ -117,21 +117,24 @@ class Discriminator(nn.Module):
 
 
 
+
 # Device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using: " + str(device))
 
 # Hyperparameters
-z_dim = 100
-learning_rate_gen = 0.001
-learning_rate_disc = 0.00001
-batch_size = 5
+z_dim = 20
+learning_rate_gen = 0.05
+learning_rate_disc = 0.0005
+batch_size = 1
 img_channels = 1
 img_size = 256
 num_epochs = 5000
 
 # Initialize generator and discriminator
 generator = Generator(z_dim=z_dim, img_channels=img_channels).to(device)
+
+
 discriminator = Discriminator(img_channels=img_channels).to(device)
 
 # Attempt to load existing models
@@ -150,9 +153,17 @@ if os.path.exists(discriminator_path):
 else:
     print("No saved discriminator model found. Initializing a new one.")
 
+
+
+
+
 # Optimizers
-opt_gen = optim.Adam(generator.parameters(), lr=learning_rate_gen, betas=(0.5, 0.999))
-opt_disc = optim.Adam(discriminator.parameters(), lr=learning_rate_disc, betas=(0.5, 0.999))
+
+weight_decay = 1e-5
+
+opt_gen = optim.Adam(generator.parameters(), lr=learning_rate_gen, betas=(0.5, 0.999), weight_decay=weight_decay)
+opt_disc = optim.Adam(discriminator.parameters(), lr=learning_rate_disc, betas=(0.5, 0.999), weight_decay=weight_decay)
+
 
 # Loss function
 criterion = nn.BCELoss()
@@ -187,48 +198,71 @@ transform = transforms.Compose([
 dataset = CustomImageDataset(root_dir='photos_2', transform=transform)
 loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-
-lambda_gp = 10  # Gradient penalty lambda hyperparameter
+def transfer_model_parameters(source_model, target_model):
+    target_model.load_state_dict(source_model.state_dict())
 
 for epoch in range(num_epochs):
     for batch_idx, real in enumerate(loader):
+        
+        #print(str(batch_idx))
+        
         real = real.to(device)
         batch_size = real.size(0)
-        noise = torch.randn(batch_size, z_dim, 1, 1, device=device)
+        noise = torch.randn(batch_size, z_dim, device=device)
         fake = generator(noise)
 
-        # Adjust targets to match discriminator output shape [batch_size, 1]
-        real_labels = torch.ones(batch_size, 1, device=device)  # Shape [100, 1] for real images
-        fake_labels = torch.zeros(batch_size, 1, device=device)  # Shape [100, 1] for fake images
-
-        ### Train Discriminator with Gradient Penalty
-        discriminator.zero_grad()
-        real_output = discriminator(real)
-        fake_output = discriminator(fake.detach())
         
-        real_loss = criterion(real_output, real_labels)
-        fake_loss = criterion(fake_output, fake_labels)
+        # Discriminator 1 Loss
+        disc_real = discriminator(real).view(-1)
+        loss_disc_real = criterion(disc_real, real_labels.view(-1))
         
-        # Calculate gradient penalty on interpolated data
-        loss_disc = real_loss + fake_loss
+        disc_fake = discriminator(fake.detach()).view(-1)
+        loss_disc_fake = criterion(disc_fake, fake_labels.view(-1))
+        
+        disc_fake_2 = discriminator(fake_2.detach()).view(-1)
+        loss_disc_fake_2 = criterion(disc_fake_2, fake_labels.view(-1))
 
+        
+        loss_disc = (loss_disc_real + (loss_disc_fake + loss_disc_fake_2) / 2) / 2
         loss_disc.backward()
         opt_disc.step()
+        
 
 
-        generator.zero_grad()
-        # Discriminator output for generated images
-        gen_output = discriminator(fake)
-        gen_loss = criterion(gen_output, real_labels)
-        gen_loss.backward()
+        # Generator 1 Loss
+        gen_output = discriminator(fake).view(-1)
+        gen_loss = criterion(gen_output, real_labels.view(-1))
+        
+        gen_output_2 = discriminator_2(fake).view(-1)
+        gen_loss_2 = criterion(gen_output_2, real_labels.view(-1))
+
+        
+        total_gen_loss = (gen_loss + gen_loss_2) / 2
+        total_gen_loss.backward()
         opt_gen.step()
         
-    # Logging
-    print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, Loss G: {gen_loss:.4f}")
-    with open('model_history.txt', 'a') as file:
-        file.write(f"Epoch {epoch+1} Loss D: {loss_disc:.4f}, Loss G: {gen_loss:.4f} \n")
+
+        # Intra-epoch logging
+        #print(f"Epoch {epoch+1} Sub: {batch_idx} Loss D: {loss_disc:.4f}, Loss G: {total_gen_loss:.4f}")
+        with open('expanded_model_history.txt', 'a') as file:
+            file.write(f"Epoch {epoch+1} Sub: {batch_idx} Loss D: {loss_disc:.4f}, Loss G: {total_gen_loss:.4f} \n")
+
+
+
+
+
     if (epoch + 1) % 1 == 0:
         torch.save(generator.state_dict(), 'generator.pth')
         torch.save(discriminator.state_dict(), 'discriminator.pth')
+        print("Models all saved")
+    
+    
+        
+        
+    # Logging
+    print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, Loss G: {total_gen_loss:.4f}")
+    with open('model_history.txt', 'a') as file:
+        file.write(f"Epoch {epoch+1} Loss D: {loss_disc:.4f}, Loss G: {total_gen_loss:.4f} \n")
+    
         
 
