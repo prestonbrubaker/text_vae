@@ -323,6 +323,22 @@ for epoch in range(num_epochs):
             print("Discriminator_2 model was killed and revived as Discriminator")
 
 
+        
+        if total_gen_loss > total_gen_loss_2 and batch_idx % 100 == 0:
+            transfer_model_parameters(generator_2, generator)
+            print("Generator model was killed and revived as Generator_2")
+        if total_gen_loss_2 > total_gen_loss and batch_idx % 100 == 0:
+            transfer_model_parameters(generator, generator_2)
+            print("Generator_2 model was killed and revived as Generator")
+
+        if loss_disc > loss_disc_2 and batch_idx % 100 == 0:
+            transfer_model_parameters(discriminator_2, discriminator)
+            print("Discriminator model was killed and revived as Discriminator_2")
+        if loss_disc_2 > loss_disc and batch_idx % 100 == 0:
+            transfer_model_parameters(discriminator, discriminator_2)
+            print("Discriminator_2 model was killed and revived as Discriminator")
+
+
     if (epoch + 1) % 1 == 0:
         torch.save(generator.state_dict(), 'generator.pth')
         torch.save(generator_2.state_dict(), 'generator_2.pth')
