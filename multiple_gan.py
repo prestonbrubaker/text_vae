@@ -6,57 +6,100 @@ from torchvision import datasets, transforms, utils
 from PIL import Image
 import os
 import random
+import torch.nn.functional as F
 
 torch.cuda.empty_cache()
 
 
-class Generator(nn.Module):
-    def __init__(self, z_dim, img_channels=1):
-        super(Generator, self).__init__()
-        self.gen = nn.Sequential(
-            # Input: Z_dim x 1 x 1
-            self._block(z_dim, 512, 4, 1, 0),  # img: 4x4
-            self._block(512, 256, 4, 2, 1),    # img: 8x8
-            self._block(256, 128, 4, 2, 1),    # img: 16x16
-            self._block(128, 64, 4, 2, 1),     # img: 32x32
-            nn.ConvTranspose2d(64, img_channels, 4, 2, 1),  # img: 64x64
-            nn.ConvTranspose2d(img_channels, img_channels, 16, 4, 6),  # img: 256x256
-            nn.Tanh()  # Output: img_channels x 256 x 256
-        )
-
-    def _block(self, in_channels, out_channels, kernel_size, stride, padding):
-        return nn.Sequential(
-            nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
-            nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(0.01)
-        )
+class SelfAttention(nn.Module):
+    """Self-attention layer for the generator."""
+    def __init__(self, in_dim):
+        super(SelfAttention, self).__init__()
+        self.query_conv = nn.Conv2d(in_dim, in_dim // 8, 1)
+        self.key_conv = nn.Conv2d(in_dim, in_dim // 8, 1)
+        self.value_conv = nn.Conv2d(in_dim, in_dim, 1)
+        self.scale = 1.0 / (in_dim ** 0.5)
 
     def forward(self, x):
-        return self.gen(x)
+        batch, channels, height, width = x.size()
+        query = self.query_conv(x).view(batch, -1, height*width).permute(0, 2, 1)
+        key = self.key_conv(x).view(batch, -1, height*width)
+        value = self.value_conv(x).view(batch, -1, height*width).permute(0, 2, 1)
+        
+        attention = torch.bmm(query, key) * self.scale
+        attention = F.softmax(attention, dim=-1)
+        
+        out = torch.bmm(value, attention.permute(0, 2, 1))
+        out = out.view(batch, channels, height, width)
+        
+        return out + x  # Skip connection
+
+class ResBlock(nn.Module):
+    """Residual block for the generator."""
+    def __init__(self, in_channels, out_channels, upsample=None):
+        super(ResBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels, out_channels, 3, padding=1)
+        self.bn1 = nn.BatchNorm2d(out_channels)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, 3, padding=1)
+        self.bn2 = nn.BatchNorm2d(out_channels)
+        self.upsample = upsample
+        self.adjust_channels = nn.Conv2d(in_channels, out_channels, 1) if in_channels != out_channels else None
+
+    def forward(self, x):
+        residual = x
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        if self.upsample:
+            out = F.interpolate(out, scale_factor=self.upsample, mode='nearest')
+            residual = F.interpolate(residual, scale_factor=self.upsample, mode='nearest')
+        if self.adjust_channels:
+            residual = self.adjust_channels(residual)
+        out += residual
+        return F.relu(out)
+
+class Generator(nn.Module):
+    def __init__(self, z_dim, img_channels):
+        super(Generator, self).__init__()
+        self.init_size = z_dim // 16  # Initial size before any upsampling
+        self.l1 = nn.Sequential(nn.Linear(z_dim, 128 * self.init_size ** 2))
+
+        self.model = nn.Sequential(
+            ResBlock(128, 128, upsample=2),
+            SelfAttention(128),
+            ResBlock(128, 64, upsample=2),
+            ResBlock(64, 32, upsample=2),
+            SelfAttention(32),
+            ResBlock(32, img_channels, upsample=2),
+            nn.Tanh()
+        )
+
+    def forward(self, z):
+        out = self.l1(z)
+        out = out.view(out.shape[0], 128, self.init_size, self.init_size)
+        img = self.model(out)
+        return img
 
 class Generator_2(nn.Module):
-    def __init__(self, z_dim, img_channels=1):
+    def __init__(self, z_dim, img_channels):
         super(Generator_2, self).__init__()
-        self.gen = nn.Sequential(
-            # Input: Z_dim x 1 x 1
-            self._block(z_dim, 512, 4, 1, 0),  # img: 4x4
-            self._block(512, 256, 4, 2, 1),    # img: 8x8
-            self._block(256, 128, 4, 2, 1),    # img: 16x16
-            self._block(128, 64, 4, 2, 1),     # img: 32x32
-            nn.ConvTranspose2d(64, img_channels, 4, 2, 1),  # img: 64x64
-            nn.ConvTranspose2d(img_channels, img_channels, 16, 4, 6),  # img: 256x256
-            nn.Tanh()  # Output: img_channels x 256 x 256
+        self.init_size = z_dim // 16  # Initial size before any upsampling
+        self.l1 = nn.Sequential(nn.Linear(z_dim, 128 * self.init_size ** 2))
+
+        self.model = nn.Sequential(
+            ResBlock(128, 128, upsample=2),
+            SelfAttention(128),
+            ResBlock(128, 64, upsample=2),
+            ResBlock(64, 32, upsample=2),
+            SelfAttention(32),
+            ResBlock(32, img_channels, upsample=2),
+            nn.Tanh()
         )
 
-    def _block(self, in_channels, out_channels, kernel_size, stride, padding):
-        return nn.Sequential(
-            nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
-            nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(0.01)
-        )
-
-    def forward(self, x):
-        return self.gen(x)
+    def forward(self, z):
+        out = self.l1(z)
+        out = out.view(out.shape[0], 128, self.init_size, self.init_size)
+        img = self.model(out)
+        return img
 
 
 
@@ -132,10 +175,10 @@ print("Using: " + str(device))
 # Hyperparameters
 z_dim = 200
 z_dim_2 = 200
-learning_rate_gen = 0.1
-learning_rate_gen_2 = 0.0000000001
+learning_rate_gen = 0.05
+learning_rate_gen_2 = 0.00000001
 learning_rate_disc = 0.0005
-learning_rate_disc_2 = 0.00000000001
+learning_rate_disc_2 = 0.00000001
 batch_size = 16
 img_channels = 1
 img_size = 256
