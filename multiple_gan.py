@@ -182,10 +182,13 @@ else:
 
 
 # Optimizers
-opt_gen = optim.Adam(generator.parameters(), lr=learning_rate_gen)
-opt_gen_2 = optim.Adam(generator_2.parameters(), lr=learning_rate_gen_2)
-opt_disc = optim.Adam(discriminator.parameters(), lr=learning_rate_disc)
-opt_disc_2 = optim.Adam(discriminator_2.parameters(), lr=learning_rate_disc_2)
+
+weight_decay = 1e-4
+
+opt_gen = optim.Adam(generator.parameters(), lr=learning_rate_gen, betas=(0.5, 0.999), weight_decay=weight_decay)
+opt_gen_2 = optim.Adam(generator_2.parameters(), lr=learning_rate_gen_2, betas=(0.5, 0.999), weight_decay=weight_decay)
+opt_disc = optim.Adam(discriminator.parameters(), lr=learning_rate_disc, betas=(0.5, 0.999), weight_decay=weight_decay)
+opt_disc_2 = optim.Adam(discriminator_2.parameters(), lr=learning_rate_disc_2, betas=(0.5, 0.999), weight_decay=weight_decay)
 
 
 # Loss function
