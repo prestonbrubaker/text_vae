@@ -38,7 +38,7 @@ print("Using: " + str(device))
 
 z_dim = 20
 generator = Generator(z_dim).to(device)
-generator.load_state_dict(torch.load("generator.pth", map_location=device))
+generator.load_state_dict(torch.load("generator_2.pth", map_location=device))
 generator.eval()
 
 output_folder = "generated_photos"
