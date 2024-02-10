@@ -22,16 +22,19 @@ class SelfAttention(nn.Module):
 
     def forward(self, x):
         batch, channels, height, width = x.size()
-        query = self.query_conv(x).view(batch, -1, height*width).permute(0, 2, 1)
-        key = self.key_conv(x).view(batch, -1, height*width)
-        value = self.value_conv(x).view(batch, -1, height*width).permute(0, 2, 1)
-        
-        attention = torch.bmm(query, key) * self.scale
+        query = self.query_conv(x).view(batch, -1, height*width).permute(0, 2, 1)  # [batch, seq_len, depth]
+        key = self.key_conv(x).view(batch, -1, height*width)  # [batch, depth, seq_len]
+        value = self.value_conv(x).view(batch, -1, height*width).permute(0, 2, 1)  # [batch, seq_len, depth]
+    
+        # Ensure the dimensionality matches for bmm
+        attention = torch.bmm(query, key) * self.scale  # [batch, seq_len, seq_len]
         attention = F.softmax(attention, dim=-1)
         
-        out = torch.bmm(value, attention.permute(0, 2, 1))
-        out = out.view(batch, channels, height, width)
-        
+        # Adjust value or the permute operation to match bmm expectations
+        value_permuted = value.permute(0, 2, 1)  # Permute to match the expected dimensions for bmm
+        out = torch.bmm(value_permuted, attention.permute(0, 2, 1))  # Now [batch, depth, seq_len]
+        out = out.permute(0, 2, 1).view(batch, channels, height, width)  # Reshape back
+    
         return out + x  # Skip connection
 
 class ResBlock(nn.Module):
