@@ -60,7 +60,7 @@ class ResBlock(nn.Module):
 class Generator(nn.Module):
     def __init__(self, z_dim, img_channels):
         super(Generator, self).__init__()
-        self.init_size = z_dim // 16  # Initial size before any upsampling
+        self.init_size = 256 // 16  # This will give a starting size of 16x16
         self.l1 = nn.Sequential(nn.Linear(z_dim, 128 * self.init_size ** 2))
 
         self.model = nn.Sequential(
@@ -75,15 +75,16 @@ class Generator(nn.Module):
 
     def forward(self, z):
         out = self.l1(z)
-        out = out.view(out.shape[0], 128, self.init_size, self.init_size)
+        # Adjusted reshaping based on the corrected initial size calculation
+        out = out.view(out.shape[0], 128, self.init_size, self.init_size)  # Reshape to (batch_size, 128, 16, 16)
         img = self.model(out)
         return img
 
 class Generator_2(nn.Module):
     def __init__(self, z_dim, img_channels):
         super(Generator_2, self).__init__()
-        self.init_size = z_dim // 16  # Initial size before any upsampling
-        self.l1 = nn.Sequential(nn.Linear(z_dim, 128 * self.init_size ** 2))
+        self.init_size = 256 // 16  # This will give a starting size of 16x16
+        self.l1 = nn.Sequential(nn.Linear(z_dim_2, 128 * self.init_size ** 2))
 
         self.model = nn.Sequential(
             ResBlock(128, 128, upsample=2),
@@ -97,7 +98,8 @@ class Generator_2(nn.Module):
 
     def forward(self, z):
         out = self.l1(z)
-        out = out.view(out.shape[0], 128, self.init_size, self.init_size)
+        # Adjusted reshaping based on the corrected initial size calculation
+        out = out.view(out.shape[0], 128, self.init_size, self.init_size)  # Reshape to (batch_size, 128, 16, 16)
         img = self.model(out)
         return img
 
@@ -277,10 +279,10 @@ for epoch in range(num_epochs):
         
         real = real.to(device)
         batch_size = real.size(0)
-        noise = torch.randn(batch_size, z_dim, 1, 1, device=device)
+        noise = torch.randn(batch_size, z_dim, device=device)
         fake = generator(noise)
 
-        noise_2 = torch.randn(batch_size, z_dim_2, 1, 1, device=device)
+        noise_2 = torch.randn(batch_size, z_dim_2, device=device)
         fake_2 = generator_2(noise_2)
 
         # Adjust targets to match discriminator output shape [batch_size, 1]
