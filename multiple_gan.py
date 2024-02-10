@@ -33,7 +33,7 @@ class SelfAttention(nn.Module):
         # Adjust value or the permute operation to match bmm expectations
         value_permuted = value.permute(0, 2, 1)  # Permute to match the expected dimensions for bmm
         out = torch.bmm(value_permuted, attention.permute(0, 2, 1))  # Now [batch, depth, seq_len]
-        out = out.permute(0, 2, 1).view(batch, channels, height, width)  # Reshape back
+        out = out.permute(0, 2, 1).reshape(batch, channels, height, width)  # Use .reshape() instead of .view()
     
         return out + x  # Skip connection
 
