@@ -220,7 +220,8 @@ transform = transforms.Compose([
 dataset = CustomImageDataset(root_dir='photos_2', transform=transform)
 loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-
+def transfer_model_parameters(source_model, target_model):
+    target_model.load_state_dict(source_model.state_dict())
 
 for epoch in range(num_epochs):
     for batch_idx, real in enumerate(loader):
@@ -300,23 +301,19 @@ for epoch in range(num_epochs):
 
         epsilon = 0.00001
     
-        if(total_gen_loss <= epsilon):
-            generator.load_state_dict(torch.load(generator_2_path, map_location=device))
-            generator.to(device)
-            print("Generator model and was killed and revived as Generator_2")
-        if(total_gen_loss_2 <= epsilon):
-            generator_2.load_state_dict(torch.load(generator_path, map_location=device))
-            generator_2.to(device)
-            print("Generator_2 model and was killed and revived as Generator")
-                
-        if(loss_disc <= epsilon or loss_disc >= 50 - epsilon):
-            discriminator.load_state_dict(torch.load(discriminator_2_path, map_location=device))
-            discriminator.to(device)
-            print("Discriminator model and was killed and revived as Discriminator_2")
-        if(loss_disc_2 <= epsilon or loss_disc_2 >= 50 - epsilon):
-            discriminator_2.load_state_dict(torch.load(discriminator_path, map_location=device))
-            discriminator_2.to(device)
-            print("Discriminator_2 model and was killed and revived as Discriminator_2")
+        if total_gen_loss <= epsilon:
+            transfer_model_parameters(generator_2, generator)
+            print("Generator model was killed and revived as Generator_2")
+        if total_gen_loss_2 <= epsilon:
+            transfer_model_parameters(generator, generator_2)
+            print("Generator_2 model was killed and revived as Generator")
+
+        if loss_disc <= epsilon or loss_disc >= 50 - epsilon:
+            transfer_model_parameters(discriminator_2, discriminator)
+            print("Discriminator model was killed and revived as Discriminator_2")
+        if loss_disc_2 <= epsilon or loss_disc_2 >= 50 - epsilon:
+            transfer_model_parameters(discriminator, discriminator_2)
+            print("Discriminator_2 model was killed and revived as Discriminator")
 
 
     if (epoch + 1) % 1 == 0:
