@@ -211,10 +211,15 @@ for epoch in range(num_epochs):
         noise = torch.randn(batch_size, z_dim, device=device)
         fake = generator(noise)
 
+        real_labels = torch.ones(batch_size, 1, device=device)  # Shape [100, 1] for real images
+        fake_labels = torch.zeros(batch_size, 1, device=device)  # Shape [100, 1] for fake images
+        
+
         
         # Discriminator Loss
         disc_real = discriminator(real).view(-1)
         loss_disc_real = criterion(disc_real, real_labels.view(-1))
+
         
         disc_fake = discriminator(fake.detach()).view(-1)
         loss_disc_fake = criterion(disc_fake, fake_labels.view(-1))
