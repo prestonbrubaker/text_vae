@@ -136,7 +136,7 @@ learning_rate_gen = 0.001
 learning_rate_gen_2 = 0.002
 learning_rate_disc = 0.00001
 learning_rate_disc_2 = 0.0002
-batch_size = 250
+batch_size = 200
 img_channels = 1
 img_size = 256
 num_epochs = 5000
@@ -182,10 +182,11 @@ else:
 
 
 # Optimizers
-opt_gen = optim.Adam(generator.parameters(), lr=learning_rate_gen, betas=(0.5, 0.999))
-opt_gen_2 = optim.Adam(generator_2.parameters(), lr=learning_rate_gen_2, betas=(0.5, 0.999))
-opt_disc = optim.Adam(discriminator.parameters(), lr=learning_rate_disc, betas=(0.5, 0.999))
-opt_disc_2 = optim.Adam(discriminator_2.parameters(), lr=learning_rate_disc_2, betas=(0.5, 0.999))
+opt_gen = optim.Adam(generator.parameters(), lr=learning_rate_gen)
+opt_gen_2 = optim.Adam(generator_2.parameters(), lr=learning_rate_gen_2)
+opt_disc = optim.Adam(discriminator.parameters(), lr=learning_rate_disc)
+opt_disc_2 = optim.Adam(discriminator_2.parameters(), lr=learning_rate_disc_2)
+
 
 # Loss function
 criterion = nn.BCELoss()
