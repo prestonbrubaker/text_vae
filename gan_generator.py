@@ -10,36 +10,31 @@ class Generator(nn.Module):
     def __init__(self, z_dim, img_channels=1, img_size=256):
         super(Generator, self).__init__()
         self.img_size = img_size
-        # Initial size before ConvTranspose layers
-        self.init_size = img_size // 16  # Start size (for example, 16x16)
-        self.fc = nn.Linear(z_dim, 512 * self.init_size ** 2)  # Prepare input for ConvTranspose
+        # Calculate the size of the tensor before the first ConvTranspose2d layer
+        self.init_size = img_size // 16
+        self.fc = nn.Linear(z_dim, 512 * self.init_size ** 2)
 
-        self.model = nn.Sequential(
-            # Input: B x 512*init_size^2 -> B x 512 x init_size x init_size
+        self.conv_blocks = nn.Sequential(
             nn.BatchNorm2d(512),
             nn.ReLU(True),
-            # First upsampling
-            nn.ConvTranspose2d(512, 256, 4, stride=2, padding=1),  # -> B x 256 x 2*init_size x 2*init_size
+            nn.ConvTranspose2d(512, 256, 4, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(256),
             nn.ReLU(True),
-            # Second upsampling
-            nn.ConvTranspose2d(256, 128, 4, stride=2, padding=1),  # -> B x 128 x 4*init_size x 4*init_size
+            nn.ConvTranspose2d(256, 128, 4, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(128),
             nn.ReLU(True),
-            # Third upsampling
-            nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1),  # -> B x 64 x 8*init_size x 8*init_size
+            nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(True),
-            # Fourth upsampling to get to 256x256
-            nn.ConvTranspose2d(64, img_channels, 4, stride=2, padding=1),  # -> B x img_channels x 16*init_size x 16*init_size
-            nn.Tanh()  # Tanh to get values between -1 and 1
+            nn.ConvTranspose2d(64, img_channels, 4, stride=2, padding=1, bias=False),
+            nn.Tanh()
         )
 
     def forward(self, noise):
-        # Transform noise to match ConvTranspose2d input
+        # Reshape noise to match the expected input for the first ConvTranspose2d layer
         noise = self.fc(noise)
-        noise = noise.view(noise.size(0), 512, self.init_size, self.init_size)  # Reshape to (batch, channels, H, W)
-        img = self.model(noise)
+        noise = noise.view(-1, 512, self.init_size, self.init_size)
+        img = self.conv_blocks(noise)
         return img
 
 
