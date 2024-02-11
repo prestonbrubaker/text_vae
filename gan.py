@@ -17,6 +17,8 @@ import torch.nn as nn
 class Generator(nn.Module):
     def __init__(self, z_dim, img_channels=1):
         super(Generator, self).__init__()
+        self.z_dim = z_dim
+        # Assuming the generator's first ConvTranspose layer expects 512 channels with a 4x4 spatial size
         self.gen = nn.Sequential(
             # Input: Z_dim x 1 x 1
             self._block(z_dim, 512, 4, 1, 0),  # img: 4x4
