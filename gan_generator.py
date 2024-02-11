@@ -47,7 +47,7 @@ device = torch.device("cpu")
 print("Using: " + str(device))
 
 
-z_dim = 500
+z_dim = 10
 img_channels = 1
 img_size = 256
 generator = Generator(z_dim, img_channels).to(device)
