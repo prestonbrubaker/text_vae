@@ -247,7 +247,7 @@ for epoch in range(num_epochs):
 
         # Combine adversarial loss with diversity penalty
         g_loss = g_loss_adv - lambda_div * div_penalty  # Note: Subtracting to minimize penalty
-        if(g_loss < 0.000001):
+        if(g_loss < -500):
             break
         g_loss.backward()
         opt_gen.step()
@@ -261,7 +261,7 @@ for epoch in range(num_epochs):
     if (epoch + 1) % 1 == 0:
         torch.save(generator.state_dict(), 'generator.pth')
         torch.save(discriminator.state_dict(), 'discriminator.pth')
-    if(d_loss < 0.000001 or g_loss < 0.000001):
+    if(d_loss < 0.000001 or g_loss < -500):
             torch.save(generator.state_dict(), 'generator_final.pth')
             torch.save(discriminator.state_dict(), 'discriminator_final.pth')
             break
