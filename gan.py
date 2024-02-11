@@ -15,66 +15,53 @@ import torch
 import torch.nn as nn
 
 class Generator(nn.Module):
-    def __init__(self, z_dim, img_channels=1, img_size=256):
+    def __init__(self, z_dim, img_channels=1):
         super(Generator, self).__init__()
-        self.img_size = img_size
-        # Calculate the size of the tensor before the first ConvTranspose2d layer
-        self.init_size = img_size // 16
-        self.fc = nn.Linear(z_dim, 512 * self.init_size ** 2)
-
-        self.conv_blocks = nn.Sequential(
-            nn.BatchNorm2d(512),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(512, 256, 4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(256, 128, 4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(128),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(64),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(64, img_channels, 4, stride=2, padding=1, bias=False),
-            nn.Tanh()
+        self.gen = nn.Sequential(
+            # Input: Z_dim x 1 x 1
+            self._block(z_dim, 512, 4, 1, 0),  # img: 4x4
+            self._block(512, 256, 4, 2, 1),    # img: 8x8
+            self._block(256, 128, 4, 2, 1),    # img: 16x16
+            self._block(128, 64, 4, 2, 1),     # img: 32x32
+            nn.ConvTranspose2d(64, img_channels, 4, 2, 1),  # img: 64x64
+            nn.ConvTranspose2d(img_channels, img_channels, 16, 4, 6),  # img: 256x256
+            nn.Tanh()  # Output: img_channels x 256 x 256
         )
 
-    def forward(self, noise):
-        # Reshape noise to match the expected input for the first ConvTranspose2d layer
-        noise = self.fc(noise)
-        noise = noise.view(-1, 512, self.init_size, self.init_size)
-        img = self.conv_blocks(noise)
-        return img
+    def _block(self, in_channels, out_channels, kernel_size, stride, padding):
+        return nn.Sequential(
+            nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(True)
+        )
 
+    def forward(self, x):
+        return self.gen(x)
 
 class Discriminator(nn.Module):
     def __init__(self, img_channels=1):
         super(Discriminator, self).__init__()
         self.disc = nn.Sequential(
             # Input: img_channels x 256 x 256
-            nn.Conv2d(img_channels, 64, 4, 2, 1),  # Output: 64 x 128 x 128
-            nn.LeakyReLU(0.01),
-            self._block(64, 128, 4, 2, 1),         # Output: 128 x 64 x 64
-            self._block(128, 256, 4, 2, 1),        # Output: 256 x 32 x 32
-            self._block(256, 512, 4, 2, 1),        # Output: 512 x 16 x 16
-            nn.Conv2d(512, 512, 4, 2, 1),          # Output: 512 x 8 x 8
-            nn.LeakyReLU(0.01),
-            nn.Conv2d(512, 512, 4, 2, 1),          # Output: 512 x 4 x 4
-            nn.LeakyReLU(0.01),
-            # Ensure the final output is 1x1
-            nn.Conv2d(512, 1, 4, 1, 0),            # Output: 1 x 1 x 1
-            nn.Sigmoid()
+            nn.Conv2d(img_channels, 64, 4, 2, 1),  # img: 128x128
+            nn.LeakyReLU(0.2),
+            self._block(64, 128, 4, 2, 1),    # img: 64x64
+            self._block(128, 256, 4, 2, 1),   # img: 32x32
+            self._block(256, 512, 4, 2, 1),   # img: 16x16
+            nn.Conv2d(512, 1, 4, 1, 0),  # img: 1x1
+            nn.Sigmoid()  # Output: 1
         )
 
     def _block(self, in_channels, out_channels, kernel_size, stride, padding):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(0.01)
+            nn.LeakyReLU(0.2)
         )
 
     def forward(self, x):
-        x = self.disc(x)
-        return x.view(x.size(0), -1)
+        return self.disc(x).view(-1)
+
 
 
 
@@ -120,7 +107,7 @@ else:
 
 # Optimizers
 
-weight_decay = 1e-6
+weight_decay = 1e-5
 
 opt_gen = optim.Adam(generator.parameters(), lr=learning_rate_gen, betas=(0.5, 0.999), weight_decay=weight_decay)
 opt_disc = optim.Adam(discriminator.parameters(), lr=learning_rate_disc, betas=(0.5, 0.999), weight_decay=weight_decay)
