@@ -89,8 +89,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using: " + str(device))
 
 # Hyperparameters
-z_dim = 100
-learning_rate_gen = 0.0001
+z_dim = 10
+learning_rate_gen = 0.01
 learning_rate_disc = 0.0001
 batch_size = 200
 img_channels = 1
@@ -125,7 +125,7 @@ else:
 
 # Optimizers
 
-weight_decay = 1e-3
+weight_decay = 1e-6
 
 opt_gen = optim.Adam(generator.parameters(), lr=learning_rate_gen, betas=(0.5, 0.999), weight_decay=weight_decay)
 opt_disc = optim.Adam(discriminator.parameters(), lr=learning_rate_disc, betas=(0.5, 0.999), weight_decay=weight_decay)
