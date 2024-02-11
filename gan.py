@@ -7,6 +7,7 @@ from PIL import Image
 import os
 import random
 from torchvision import models
+from torchvision.models import vgg16, VGG16_Weights
 
 
 
@@ -72,10 +73,13 @@ class Discriminator(nn.Module):
 class FeatureExtractor(nn.Module):
     def __init__(self):
         super(FeatureExtractor, self).__init__()
-        vgg16 = models.vgg16(pretrained=True)
-        self.features = vgg16.features
+        # Load the pre-trained VGG16 model with the recommended approach
+        vgg16_model = vgg16(weights=VGG16_Weights.IMAGENET1K_V1)
+        self.features = vgg16_model.features
 
     def forward(self, x):
+        if x.size(1) == 1:
+            x = x.repeat(1, 3, 1, 1)
         return self.features(x)
 
 
