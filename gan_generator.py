@@ -53,7 +53,7 @@ os.makedirs(output_folder, exist_ok=True)
 num_images = 500
 with torch.no_grad():
     for i in range(num_images):
-        z = torch.randn(1, z_dim, device=device)
+        z = torch.randn(1, z_dim, 1, 1, device=device)  # Adjusted shape
         generated_image = generator(z)
         img = generated_image.squeeze(0).cpu().detach()
         img = transforms.ToPILImage()(img)
