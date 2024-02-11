@@ -11,34 +11,43 @@ import torch.nn.functional as F
 torch.cuda.empty_cache()
 
 
-class Generator(nn.Module):
-    def __init__(self, z_dim, img_channels, img_size):
-        super(Generator, self).__init__()
+class ConvGenerator(nn.Module):
+    def __init__(self, z_dim, img_channels, img_size=256):
+        super(ConvGenerator, self).__init__()
+        self.z_dim = z_dim
+        self.img_channels = img_channels
         self.img_size = img_size
-        self.label_emb = nn.Embedding(10, z_dim)
 
-        self.init_size = img_size // 16  # This will map to 16x16
-        self.fc = nn.Linear(z_dim, 128 * self.init_size ** 2)
-
-        self.conv_blocks = nn.Sequential(
+        self.model = nn.Sequential(
+            # Input is Z, going into a convolution
+            nn.ConvTranspose2d(z_dim, 512, kernel_size=4, stride=1, padding=0, bias=True),
+            nn.BatchNorm2d(512),
+            nn.ReLU(True),
+            # State size: 512 x 4 x 4
+            nn.ConvTranspose2d(512, 256, kernel_size=4, stride=2, padding=1, bias=True),
+            nn.BatchNorm2d(256),
+            nn.ReLU(True),
+            # State size: 256 x 8 x 8
+            nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1, bias=True),
             nn.BatchNorm2d(128),
-            nn.Upsample(scale_factor=2),
-            nn.Conv2d(128, 128, 3, stride=1, padding=1),
-            nn.BatchNorm2d(128, 0.8),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Upsample(scale_factor=2),
-            nn.Conv2d(128, 64, 3, stride=1, padding=1),
-            nn.BatchNorm2d(64, 0.8),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(64, img_channels, 3, stride=1, padding=1),
-            nn.Tanh(),
+            nn.ReLU(True),
+            # State size: 128 x 16 x 16
+            nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1, bias=True),
+            nn.BatchNorm2d(64),
+            nn.ReLU(True),
+            # State size: 64 x 32 x 32
+            nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1, bias=True),
+            nn.BatchNorm2d(32),
+            nn.ReLU(True),
+            # State size: 32 x 64 x 64
+            nn.ConvTranspose2d(32, img_channels, kernel_size=4, stride=4, padding=1, bias=True),
+            nn.Tanh()
+            # Final Image size: img_channels x 256 x 256
         )
 
-    def forward(self, z):
-        out = self.fc(z)
-        out = out.view(out.shape[0], 128, self.init_size, self.init_size)
-        img = self.conv_blocks(out)
-        return img
+    def forward(self, noise):
+        # Assuming noise shape is [batch_size, z_dim, 1, 1]
+        return self.model(noise)
 
 class Discriminator(nn.Module):
     def __init__(self, img_channels=1):
@@ -78,7 +87,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using: " + str(device))
 
 # Hyperparameters
-z_dim = 20
+z_dim = 100
 learning_rate_gen = 0.01
 learning_rate_disc = 0.0001
 batch_size = 10
@@ -87,7 +96,7 @@ img_size = 256
 num_epochs = 5000
 
 # Initialize generator and discriminator
-generator = Generator(z_dim, img_channels, img_size).to(device)
+generator = ConvGenerator(z_dim, img_channels).to(device)
 
 
 discriminator = Discriminator(img_channels=img_channels).to(device)
