@@ -90,8 +90,8 @@ print("Using: " + str(device))
 
 # Hyperparameters
 z_dim = 100
-learning_rate_gen = 0.001
-learning_rate_disc = 0.00001
+learning_rate_gen = 0.0001
+learning_rate_disc = 0.0001
 batch_size = 256
 img_channels = 1
 img_size = 256
@@ -125,7 +125,7 @@ else:
 
 # Optimizers
 
-weight_decay = 1e-4
+weight_decay = 1e-3
 
 opt_gen = optim.Adam(generator.parameters(), lr=learning_rate_gen, betas=(0.5, 0.999), weight_decay=weight_decay)
 opt_disc = optim.Adam(discriminator.parameters(), lr=learning_rate_disc, betas=(0.5, 0.999), weight_decay=weight_decay)
