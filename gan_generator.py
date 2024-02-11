@@ -3,6 +3,8 @@ import torch.nn as nn
 from torchvision import transforms, utils
 from PIL import Image
 import os
+import torch.nn.functional as F
+
 
 class SelfAttention(nn.Module):
     """Self-attention layer for the generator."""
