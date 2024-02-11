@@ -175,6 +175,7 @@ for epoch in range(num_epochs):
         real = real.to(device)
         batch_size = real.size(0)
         noise = torch.randn(batch_size, z_dim)
+        noise = noise.to(device)
         fake = generator(noise)
 
         real_labels = torch.ones(batch_size, 1, device=device)  # Shape [100, 1] for real images
