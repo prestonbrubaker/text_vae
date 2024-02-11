@@ -85,8 +85,8 @@ print("Using: " + str(device))
 
 # Hyperparameters
 z_dim = 500
-learning_rate_gen = 0.01
-learning_rate_disc = 0.01
+learning_rate_gen = 0.001
+learning_rate_disc = 0.001
 batch_size = 200
 img_channels = 1
 img_size = 256
