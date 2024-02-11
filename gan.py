@@ -5,78 +5,55 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms, utils
 from PIL import Image
 import os
-import random
-import torch.nn.functional as F
 
-torch.cuda.empty_cache()
-
-
-import torch
-import torch.nn as nn
 
 class Generator(nn.Module):
-    def __init__(self, z_dim, img_channels=1, img_size=256):
+    def __init__(self, z_dim=27, img_channels=1):
         super(Generator, self).__init__()
-        self.img_size = img_size
-        # Calculate the size of the tensor before the first ConvTranspose2d layer
-        self.init_size = img_size // 16
-        self.fc = nn.Linear(z_dim, 512 * self.init_size ** 2)
-
-        self.conv_blocks = nn.Sequential(
-            nn.BatchNorm2d(512),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(512, 256, 4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(256, 128, 4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(128),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(64),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(64, img_channels, 4, stride=2, padding=1, bias=False),
-            nn.Tanh()
+        self.gen = nn.Sequential(
+            # Input: Z_dim x 1 x 1
+            self._block(z_dim, 512, 4, 1, 0),  # img: 4x4
+            self._block(512, 256, 4, 2, 1),    # img: 8x8
+            self._block(256, 128, 4, 2, 1),    # img: 16x16
+            self._block(128, 64, 4, 2, 1),     # img: 32x32
+            nn.ConvTranspose2d(64, img_channels, 4, 2, 1),  # img: 64x64
+            nn.ConvTranspose2d(img_channels, img_channels, 16, 4, 6),  # img: 256x256
+            nn.Tanh()  # Output: img_channels x 256 x 256
         )
 
-    def forward(self, noise):
-        # Reshape noise to match the expected input for the first ConvTranspose2d layer
-        noise = self.fc(noise)
-        noise = noise.view(-1, 512, self.init_size, self.init_size)
-        img = self.conv_blocks(noise)
-        return img
+    def _block(self, in_channels, out_channels, kernel_size, stride, padding):
+        return nn.Sequential(
+            nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(True)
+        )
 
+    def forward(self, x):
+        return self.gen(x)
 
 class Discriminator(nn.Module):
     def __init__(self, img_channels=1):
         super(Discriminator, self).__init__()
         self.disc = nn.Sequential(
             # Input: img_channels x 256 x 256
-            nn.Conv2d(img_channels, 64, 4, 2, 1),  # Output: 64 x 128 x 128
-            nn.LeakyReLU(0.01),
-            self._block(64, 128, 4, 2, 1),         # Output: 128 x 64 x 64
-            self._block(128, 256, 4, 2, 1),        # Output: 256 x 32 x 32
-            self._block(256, 512, 4, 2, 1),        # Output: 512 x 16 x 16
-            nn.Conv2d(512, 512, 4, 2, 1),          # Output: 512 x 8 x 8
-            nn.LeakyReLU(0.01),
-            nn.Conv2d(512, 512, 4, 2, 1),          # Output: 512 x 4 x 4
-            nn.LeakyReLU(0.01),
-            # Ensure the final output is 1x1
-            nn.Conv2d(512, 1, 4, 1, 0),            # Output: 1 x 1 x 1
-            nn.Sigmoid()
+            nn.Conv2d(img_channels, 64, 4, 2, 1),  # img: 128x128
+            nn.LeakyReLU(0.2),
+            self._block(64, 128, 4, 2, 1),    # img: 64x64
+            self._block(128, 256, 4, 2, 1),   # img: 32x32
+            self._block(256, 512, 4, 2, 1),   # img: 16x16
+            nn.Conv2d(512, 1, 4, 1, 0),  # img: 1x1
+            nn.Sigmoid()  # Output: 1
         )
 
     def _block(self, in_channels, out_channels, kernel_size, stride, padding):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(0.01)
+            nn.LeakyReLU(0.2)
         )
 
     def forward(self, x):
-        x = self.disc(x)
-        return x.view(x.size(0), -1)
-
-
+        return self.disc(x).view(-1)
 
 
 # Device configuration
@@ -84,18 +61,16 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using: " + str(device))
 
 # Hyperparameters
-z_dim = 500
-learning_rate_gen = 0.000001
+z_dim = 27
+learning_rate_gen = 0.001
 learning_rate_disc = 0.000001
-batch_size = 1
+batch_size = 64
 img_channels = 1
 img_size = 256
-num_epochs = 5000
+num_epochs = 50
 
 # Initialize generator and discriminator
-generator = Generator(z_dim, img_channels).to(device)
-
-
+generator = Generator(z_dim=z_dim, img_channels=img_channels).to(device)
 discriminator = Discriminator(img_channels=img_channels).to(device)
 
 # Attempt to load existing models
@@ -114,17 +89,9 @@ if os.path.exists(discriminator_path):
 else:
     print("No saved discriminator model found. Initializing a new one.")
 
-
-
-
-
 # Optimizers
-
-weight_decay = 1e-6
-
-opt_gen = optim.Adam(generator.parameters(), lr=learning_rate_gen, betas=(0.5, 0.999), weight_decay=weight_decay)
-opt_disc = optim.Adam(discriminator.parameters(), lr=learning_rate_disc, betas=(0.5, 0.999), weight_decay=weight_decay)
-
+opt_gen = optim.Adam(generator.parameters(), lr=learning_rate_gen, betas=(0.5, 0.999))
+opt_disc = optim.Adam(discriminator.parameters(), lr=learning_rate_disc, betas=(0.5, 0.999))
 
 # Loss function
 criterion = nn.BCELoss()
@@ -159,82 +126,38 @@ transform = transforms.Compose([
 dataset = CustomImageDataset(root_dir='photos_2', transform=transform)
 loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-def transfer_model_parameters(source_model, target_model):
-    target_model.load_state_dict(source_model.state_dict())
 
 for epoch in range(num_epochs):
     for batch_idx, real in enumerate(loader):
-        
-        #print(str(batch_idx))
-        
+        #print("Batch: " + str(batch_idx))
         real = real.to(device)
         batch_size = real.size(0)
-        noise = torch.randn(batch_size, z_dim)
-        noise = noise.to(device)
+        noise = torch.randn(batch_size, z_dim, 1, 1, device=device)
         fake = generator(noise)
 
-        real_labels = torch.ones(batch_size, 1, device=device)  # Shape [100, 1] for real images
-        fake_labels = torch.zeros(batch_size, 1, device=device)  # Shape [100, 1] for fake images
-        
-
-        
-        # Discriminator Loss
+        ### Train Discriminator: max log(D(real)) + log(1 - D(G(z)))
         disc_real = discriminator(real).view(-1)
-        loss_disc_real = criterion(disc_real, real_labels.view(-1))
-
-        
+        loss_disc_real = criterion(disc_real, torch.ones_like(disc_real))
         disc_fake = discriminator(fake.detach()).view(-1)
-        loss_disc_fake = criterion(disc_fake, fake_labels.view(-1))
-        
-
-        
+        loss_disc_fake = criterion(disc_fake, torch.zeros_like(disc_fake))
         loss_disc = (loss_disc_real + loss_disc_fake) / 2
+        discriminator.zero_grad()
         loss_disc.backward()
         opt_disc.step()
-        
 
-
-        # Generator Loss
-        gen_output = discriminator(fake).view(-1)
-        gen_loss = criterion(gen_output, real_labels.view(-1))
-        
-
-        
-        total_gen_loss = gen_loss
-        total_gen_loss.backward()
+        ### Train Generator: min log(1 - D(G(z))) <-> max log(D(G(z))
+        output = discriminator(fake).view(-1)
+        loss_gen = criterion(output, torch.ones_like(output))
+        generator.zero_grad()
+        loss_gen.backward()
         opt_gen.step()
-        
 
-        # Intra-epoch logging
-        #print(f"Epoch {epoch+1} Sub: {batch_idx} Loss D: {loss_disc:.4f}, Loss G: {total_gen_loss:.4f}")
-        with open('expanded_model_history.txt', 'a') as file:
-            file.write(f"Epoch {epoch+1} Sub: {batch_idx} Loss D: {loss_disc:.4f}, Loss G: {total_gen_loss:.4f} \n")
-
-        if total_gen_loss.item() == 0 or loss_disc.item() == 0:
-            print(f"Stopping early at epoch {epoch+1} due to zero loss.")
-            break
-
-
-
-
-
+    # Save generator model every 1 epoch(s)
     if (epoch + 1) % 1 == 0:
-        torch.save(generator.state_dict(), 'generator.pth')
-        torch.save(discriminator.state_dict(), 'discriminator.pth')
-        print("Models all saved")
-    
-    
-        
-        
-    # Logging
-    print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, Loss G: {total_gen_loss:.4f}")
+        torch.save(generator.state_dict(), f'generator.pth')
+        torch.save(discriminator.state_dict(), f'discriminator.pth')
+        print(f"Generator and discriminator model saved at epoch {epoch+1}")
+
+    print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, loss G: {loss_gen:.4f}")
     with open('model_history.txt', 'a') as file:
-        file.write(f"Epoch {epoch+1} Loss D: {loss_disc:.4f}, Loss G: {total_gen_loss:.4f} \n")
-    if total_gen_loss.item() == 0 or loss_disc.item() == 0:
-        break
-
-
-
-torch.save(generator.state_dict(), 'generator.pth')
-torch.save(discriminator.state_dict(), 'discriminator.pth')
-print("Models all saved and training finished")
+        file.write(f"Epoch [{epoch+1}/{num_epochs}] Loss_D: {loss_disc:.4f}, loss_G: {loss_gen:.4f} \n")
