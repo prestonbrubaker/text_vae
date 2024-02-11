@@ -247,11 +247,6 @@ for epoch in range(num_epochs):
             break
         g_loss.backward()
         opt_gen.step()
-
-        
-        
-        gen_loss.backward()
-        optimizer_gen.step()
         
     # Logging
     print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {d_loss:.4f}, Loss G: {g_loss:.4f}")
