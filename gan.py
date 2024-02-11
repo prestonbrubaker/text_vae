@@ -11,43 +11,45 @@ import torch.nn.functional as F
 torch.cuda.empty_cache()
 
 
+import torch
+import torch.nn as nn
+
 class ConvGenerator(nn.Module):
-    def __init__(self, z_dim, img_channels, img_size=256):
+    def __init__(self, z_dim, img_channels=1, img_size=256):
         super(ConvGenerator, self).__init__()
-        self.z_dim = z_dim
-        self.img_channels = img_channels
         self.img_size = img_size
+        # Initial size before ConvTranspose layers
+        self.init_size = img_size // 16  # Start size (for example, 16x16)
+        self.fc = nn.Linear(z_dim, 512 * self.init_size ** 2)  # Prepare input for ConvTranspose
 
         self.model = nn.Sequential(
-            # Input is Z, going into a convolution
-            nn.ConvTranspose2d(z_dim, 512, kernel_size=2, stride=1, padding=0, bias=True),
+            # Input: B x 512*init_size^2 -> B x 512 x init_size x init_size
             nn.BatchNorm2d(512),
             nn.ReLU(True),
-            # State size: 512 x 4 x 4
-            nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2, padding=1, bias=True),
+            # First upsampling
+            nn.ConvTranspose2d(512, 256, 4, stride=2, padding=1),  # -> B x 256 x 2*init_size x 2*init_size
             nn.BatchNorm2d(256),
             nn.ReLU(True),
-            # State size: 256 x 8 x 8
-            nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2, padding=1, bias=True),
+            # Second upsampling
+            nn.ConvTranspose2d(256, 128, 4, stride=2, padding=1),  # -> B x 128 x 4*init_size x 4*init_size
             nn.BatchNorm2d(128),
             nn.ReLU(True),
-            # State size: 128 x 16 x 16
-            nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2, padding=1, bias=True),
+            # Third upsampling
+            nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1),  # -> B x 64 x 8*init_size x 8*init_size
             nn.BatchNorm2d(64),
             nn.ReLU(True),
-            # State size: 64 x 32 x 32
-            nn.ConvTranspose2d(64, 32, kernel_size=2, stride=2, padding=1, bias=True),
-            nn.BatchNorm2d(32),
-            nn.ReLU(True),
-            # State size: 32 x 128 x 128 (previously was 32 x 64 x 64, adjusted the stride to 2 for correct upscaling)
-            nn.ConvTranspose2d(32, img_channels, kernel_size=2, stride=2, padding=1, bias=True),
-            nn.Tanh()
-            # Final Image size: img_channels x 256 x 256
+            # Fourth upsampling to get to 256x256
+            nn.ConvTranspose2d(64, img_channels, 4, stride=2, padding=1),  # -> B x img_channels x 16*init_size x 16*init_size
+            nn.Tanh()  # Tanh to get values between -1 and 1
         )
 
     def forward(self, noise):
-        # Assuming noise shape is [batch_size, z_dim, 1, 1]
-        return self.model(noise)
+        # Transform noise to match ConvTranspose2d input
+        noise = self.fc(noise)
+        noise = noise.view(noise.size(0), 512, self.init_size, self.init_size)  # Reshape to (batch, channels, H, W)
+        img = self.model(noise)
+        return img
+
 
 class Discriminator(nn.Module):
     def __init__(self, img_channels=1):
