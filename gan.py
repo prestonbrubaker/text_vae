@@ -14,28 +14,38 @@ torch.cuda.empty_cache()
 class Generator(nn.Module):
     def __init__(self, z_dim, img_channels, img_size):
         super(Generator, self).__init__()
+        # Initial size for the feature maps
+        self.init_size = img_size // 8  # Assuming img_size is a power of 2 and at least 64
+        self.z_dim = z_dim
+        self.img_channels = img_channels
+        
         self.gen = nn.Sequential(
-            # Linear layer to transform the input
-            nn.Linear(z_dim, 128),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(128, 256),
-            nn.BatchNorm1d(256),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(256, 512),
-            nn.BatchNorm1d(512),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(512, 1024),
-            nn.BatchNorm1d(1024),
-            nn.LeakyReLU(0.2, inplace=True),
-            # Final layer to produce the image
-            nn.Linear(1024, img_channels*img_size*img_size),
+            # Input is Z, going into a convolution
+            nn.ConvTranspose2d(z_dim, 512, kernel_size=4, stride=1, padding=0, bias=False),
+            nn.BatchNorm2d(512),
+            nn.ReLU(True),
+            # State size. 512 x 4 x 4
+            
+            nn.ConvTranspose2d(512, 256, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(256),
+            nn.ReLU(True),
+            # State size. 256 x 8 x 8
+            
+            nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(128),
+            nn.ReLU(True),
+            # State size. 128 x 16 x 16
+            
+            nn.ConvTranspose2d(128, img_channels, kernel_size=4, stride=2, padding=1, bias=False),
             nn.Tanh()
+            # Output state size. img_channels x 32 x 32
         )
 
-    def forward(self, x):
-        x = self.gen(x)
-        # Reshape the output to image dimensions
-        return x.view(x.size(0), img_channels, img_size, img_size)
+    def forward(self, noise):
+        # Assuming noise is of shape (batch_size, z_dim)
+        noise = noise.view(-1, self.z_dim, 1, 1)  # Reshape to (batch_size, z_dim, 1, 1)
+        return self.gen(noise)
+
 
 class Discriminator(nn.Module):
     def __init__(self, img_channels=1):
