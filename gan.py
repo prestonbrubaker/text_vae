@@ -215,6 +215,10 @@ for epoch in range(num_epochs):
         with open('expanded_model_history.txt', 'a') as file:
             file.write(f"Epoch {epoch+1} Sub: {batch_idx} Loss D: {loss_disc:.4f}, Loss G: {total_gen_loss:.4f} \n")
 
+        if total_gen_loss.item() == 0 or loss_disc.item() == 0:
+            print(f"Stopping early at epoch {epoch+1} due to zero loss.")
+            break
+
 
 
 
@@ -231,6 +235,11 @@ for epoch in range(num_epochs):
     print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, Loss G: {total_gen_loss:.4f}")
     with open('model_history.txt', 'a') as file:
         file.write(f"Epoch {epoch+1} Loss D: {loss_disc:.4f}, Loss G: {total_gen_loss:.4f} \n")
-    
-        
+    if total_gen_loss.item() == 0 or loss_disc.item() == 0:
+        break
 
+
+
+torch.save(generator.state_dict(), 'generator.pth')
+torch.save(discriminator.state_dict(), 'discriminator.pth')
+print("Models all saved and training finished")
