@@ -14,9 +14,9 @@ torch.cuda.empty_cache()
 import torch
 import torch.nn as nn
 
-class ConvGenerator(nn.Module):
+class Generator(nn.Module):
     def __init__(self, z_dim, img_channels=1, img_size=256):
-        super(ConvGenerator, self).__init__()
+        super(Generator, self).__init__()
         self.img_size = img_size
         # Initial size before ConvTranspose layers
         self.init_size = img_size // 16  # Start size (for example, 16x16)
@@ -98,7 +98,7 @@ img_size = 256
 num_epochs = 5000
 
 # Initialize generator and discriminator
-generator = ConvGenerator(z_dim, img_channels).to(device)
+generator = Generator(z_dim, img_channels).to(device)
 
 
 discriminator = Discriminator(img_channels=img_channels).to(device)
