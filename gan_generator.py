@@ -87,7 +87,7 @@ print("Using: " + str(device))
 z_dim = 20
 img_channels = 1
 img_size = 256
-generator = Generator(z_dim).to(device)
+generator = Generator(z_dim, img_channels).to(device)
 generator.load_state_dict(torch.load("generator.pth", map_location=device))
 generator.eval()
 
