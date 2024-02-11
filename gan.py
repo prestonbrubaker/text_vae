@@ -6,6 +6,9 @@ from torchvision import datasets, transforms, utils
 from PIL import Image
 import os
 import random
+from torchvision import models
+
+
 
 
 class Generator(nn.Module):
@@ -31,6 +34,9 @@ class Generator(nn.Module):
 
     def forward(self, x):
         return self.gen(x)
+
+
+
 class Discriminator(nn.Module):
     def __init__(self, img_channels=1):
         super(Discriminator, self).__init__()
@@ -60,6 +66,38 @@ class Discriminator(nn.Module):
     def forward(self, x):
         x = self.disc(x)
         return x.view(x.size(0), -1)
+
+
+
+class FeatureExtractor(nn.Module):
+    def __init__(self):
+        super(FeatureExtractor, self).__init__()
+        vgg16 = models.vgg16(pretrained=True)
+        self.features = vgg16.features
+
+    def forward(self, x):
+        return self.features(x)
+
+
+def diversity_penalty(features, eps=1e-8):
+    """
+    Calculate diversity penalty based on cosine similarity of features.
+    :param features: Tensor of shape (batch_size, feature_size) containing features of generated images.
+    :param eps: Small value to avoid division by zero.
+    :return: Diversity penalty loss.
+    """
+    normalized_features = features / (features.norm(dim=1, keepdim=True) + eps)
+    similarity_matrix = torch.mm(normalized_features, normalized_features.t())
+    # Zero out diagonal elements (self-similarity) and take upper triangle to avoid double counting
+    similarity_matrix.fill_diagonal_(0)
+    upper_triangle_indices = torch.triu_indices(similarity_matrix.size(0), similarity_matrix.size(1), offset=1)
+    average_similarity = similarity_matrix[upper_triangle_indices[0], upper_triangle_indices[1]].mean()
+    # Penalty for high similarity (low diversity)
+    diversity_loss = average_similarity
+    return diversity_loss
+
+
+
 
 def compute_gradient_penalty(D, real_samples, fake_samples, device):
     """Calculates the gradient penalty for WGAN-GP."""
@@ -157,54 +195,73 @@ loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 
 lambda_gp = 10  # Gradient penalty lambda hyperparameter
+lambda_div = 0.5  # Example value, adjust based on your needs
+
+# Initialize feature extractor once before the training loop
+feature_extractor = FeatureExtractor().to(device)
+feature_extractor.eval()
 
 for epoch in range(num_epochs):
     for batch_idx, real in enumerate(loader):
-        real = real.to(device)
-        batch_size = real.size(0)
+        real_images = real_images.to(device)
+        batch_size = real_images.size(0)
+
+        # Prepare noise input for generator
         noise = torch.randn(batch_size, z_dim, 1, 1, device=device)
-        fake = generator(noise)
+        fake_images = generator(noise)
 
-        # Adjust targets to match discriminator output shape [batch_size, 1]
-        real_labels = torch.ones(batch_size, 1, device=device)  # Shape [100, 1] for real images
-        fake_labels = torch.zeros(batch_size, 1, device=device)  # Shape [100, 1] for fake images
-
-        ### Train Discriminator with Gradient Penalty
+        ### Update Discriminator: maximize log(D(x)) + log(1 - D(G(z))) + gradient_penalty
         discriminator.zero_grad()
-        real_output = discriminator(real)
-        fake_output = discriminator(fake.detach())
-        
-        real_loss = criterion(real_output, real_labels)
-        fake_loss = criterion(fake_output, fake_labels)
-        
-        # Calculate gradient penalty on interpolated data
-        gradient_penalty = compute_gradient_penalty(discriminator, real, fake.detach(), device)
-        loss_disc = real_loss + fake_loss + lambda_gp * gradient_penalty
 
-        if(loss_disc < 0.000001):
+        real_pred = discriminator(real_images)
+        fake_pred = discriminator(fake_images.detach())
+
+        real_loss = criterion(real_pred, torch.ones_like(real_pred))
+        fake_loss = criterion(fake_pred, torch.zeros_like(fake_pred))
+
+        # Compute Gradient Penalty on real and fake data
+        gp = compute_gradient_penalty(discriminator, real_images.data, fake_images.data, device)
+
+        d_loss = real_loss + fake_loss + lambda_gp * gp
+        if(d_loss < 0.000001):
             break
-        
-        loss_disc.backward()
+        d_loss.backward()
         opt_disc.step()
-        
 
+        ### Update Generator: minimize log(1 - D(G(z))) or maximize log(D(G(z))) + diversity_penalty
         generator.zero_grad()
-        # Discriminator output for generated images
-        gen_output = discriminator(fake)
-        gen_loss = criterion(gen_output, real_labels)
-        if(gen_loss < 0.000001):
+
+        # Generate a batch of images
+        gen_pred = discriminator(fake_images)
+
+        # Original adversarial loss
+        g_loss_adv = criterion(gen_pred, torch.ones_like(gen_pred))
+
+        # Compute features of generated images to apply diversity penalty
+        gen_features = feature_extractor(fake_images).view(batch_size, -1)  # Adjust shape as needed
+        div_penalty = diversity_penalty(gen_features)
+
+        # Combine adversarial loss with diversity penalty
+        g_loss = g_loss_adv - lambda_div * div_penalty  # Note: Subtracting to minimize penalty
+        if(g_loss < 0.000001):
             break
-            
-        gen_loss.backward()
+        g_loss.backward()
         opt_gen.step()
+
+        
+        
+        gen_loss.backward()
+        optimizer_gen.step()
         
     # Logging
-    print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {loss_disc:.4f}, Loss G: {gen_loss:.4f}")
+    print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {d_loss:.4f}, Loss G: {g_loss:.4f}")
     with open('model_history.txt', 'a') as file:
-        file.write(f"Epoch {epoch+1} Loss D: {loss_disc:.4f}, Loss G: {gen_loss:.4f} \n")
+        file.write(f"Epoch {epoch+1} Loss D: {d_loss:.4f}, Loss G: {g_loss:.4f} \n")
     if (epoch + 1) % 1 == 0:
         torch.save(generator.state_dict(), 'generator.pth')
         torch.save(discriminator.state_dict(), 'discriminator.pth')
-    if(loss_disc < 0.000001 or gen_loss < 0.000001):
+    if(d_loss < 0.000001 or g_loss < 0.000001):
+            torch.save(generator.state_dict(), 'generator_final.pth')
+            torch.save(discriminator.state_dict(), 'discriminator_final.pth')
             break
         
