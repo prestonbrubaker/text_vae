@@ -89,7 +89,7 @@ img_size = 256
 num_epochs = 5000
 
 # Initialize generator and discriminator
-generator = Generator(z_dim=z_dim, img_channels=img_channels).to(device)
+generator = Generator(z_dim, img_channels, img_size).to(device)
 
 
 discriminator = Discriminator(img_channels=img_channels).to(device)
