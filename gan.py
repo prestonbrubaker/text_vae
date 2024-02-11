@@ -39,7 +39,9 @@ class Generator(nn.Module):
         )
 
     def forward(self, x):
-        noise = noise.view(-1, z_dim)
+        # Reshape and process the input noise vector
+        x = self.fc(x)
+        x = x.view(-1, 512, 4, 4)  # Correct reshaping to match ConvTranspose2d input
         return self.gen(x)
 
 class Discriminator(nn.Module):
