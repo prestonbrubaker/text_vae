@@ -208,19 +208,19 @@ for epoch in range(num_epochs):
 
         # Prepare noise input for generator
         noise = torch.randn(batch_size, z_dim, 1, 1, device=device)
-        fake_images = generator(noise)
+        fake = generator(noise)
 
         ### Update Discriminator: maximize log(D(x)) + log(1 - D(G(z))) + gradient_penalty
         discriminator.zero_grad()
 
-        real_pred = discriminator(real_images)
-        fake_pred = discriminator(fake_images.detach())
+        real_pred = discriminator(real)
+        fake_pred = discriminator(fake.detach())
 
         real_loss = criterion(real_pred, torch.ones_like(real_pred))
         fake_loss = criterion(fake_pred, torch.zeros_like(fake_pred))
 
         # Compute Gradient Penalty on real and fake data
-        gp = compute_gradient_penalty(discriminator, real_images.data, fake_images.data, device)
+        gp = compute_gradient_penalty(discriminator, real.data, fake.data, device)
 
         d_loss = real_loss + fake_loss + lambda_gp * gp
         if(d_loss < 0.000001):
@@ -232,13 +232,13 @@ for epoch in range(num_epochs):
         generator.zero_grad()
 
         # Generate a batch of images
-        gen_pred = discriminator(fake_images)
+        gen_pred = discriminator(fake)
 
         # Original adversarial loss
         g_loss_adv = criterion(gen_pred, torch.ones_like(gen_pred))
 
         # Compute features of generated images to apply diversity penalty
-        gen_features = feature_extractor(fake_images).view(batch_size, -1)  # Adjust shape as needed
+        gen_features = feature_extractor(fake).view(batch_size, -1)  # Adjust shape as needed
         div_penalty = diversity_penalty(gen_features)
 
         # Combine adversarial loss with diversity penalty
