@@ -135,7 +135,7 @@ print("Using: " + str(device))
 z_dim = 100
 learning_rate_gen = 0.001
 learning_rate_disc = 0.00001
-batch_size = 100
+batch_size = 10
 img_channels = 1
 img_size = 256
 num_epochs = 5000
