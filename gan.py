@@ -18,6 +18,7 @@ class Generator(nn.Module):
     def __init__(self, z_dim, img_channels=1):
         super(Generator, self).__init__()
         self.z_dim = z_dim
+        self.fc = nn.Linear(z_dim, 512 * 4 * 4)  # Adjust the numbers here based on your architecture
         # Assuming the generator's first ConvTranspose layer expects 512 channels with a 4x4 spatial size
         self.gen = nn.Sequential(
             # Input: Z_dim x 1 x 1
@@ -38,6 +39,7 @@ class Generator(nn.Module):
         )
 
     def forward(self, x):
+        noise = noise.view(-1, z_dim)
         return self.gen(x)
 
 class Discriminator(nn.Module):
