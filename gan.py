@@ -20,27 +20,27 @@ class ConvGenerator(nn.Module):
 
         self.model = nn.Sequential(
             # Input is Z, going into a convolution
-            nn.ConvTranspose2d(z_dim, 512, kernel_size=4, stride=1, padding=0, bias=True),
+            nn.ConvTranspose2d(z_dim, 512, kernel_size=2, stride=1, padding=0, bias=True),
             nn.BatchNorm2d(512),
             nn.ReLU(True),
             # State size: 512 x 4 x 4
-            nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2, padding=1, bias=True),
+            nn.ConvTranspose2d(512, 256, kernel_size=4, stride=2, padding=1, bias=True),
             nn.BatchNorm2d(256),
             nn.ReLU(True),
             # State size: 256 x 8 x 8
-            nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2, padding=1, bias=True),
+            nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1, bias=True),
             nn.BatchNorm2d(128),
             nn.ReLU(True),
             # State size: 128 x 16 x 16
-            nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2, padding=1, bias=True),
+            nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1, bias=True),
             nn.BatchNorm2d(64),
             nn.ReLU(True),
             # State size: 64 x 32 x 32
-            nn.ConvTranspose2d(64, 32, kernel_size=2, stride=2, padding=1, bias=True),
+            nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1, bias=True),
             nn.BatchNorm2d(32),
             nn.ReLU(True),
             # State size: 32 x 128 x 128 (previously was 32 x 64 x 64, adjusted the stride to 2 for correct upscaling)
-            nn.ConvTranspose2d(32, img_channels, kernel_size=2, stride=2, padding=1, bias=True),
+            nn.ConvTranspose2d(32, img_channels, kernel_size=4, stride=2, padding=1, bias=True),
             nn.Tanh()
             # Final Image size: img_channels x 256 x 256
         )
