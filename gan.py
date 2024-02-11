@@ -203,8 +203,8 @@ feature_extractor.eval()
 
 for epoch in range(num_epochs):
     for batch_idx, real in enumerate(loader):
-        real_images = real_images.to(device)
-        batch_size = real_images.size(0)
+        real = real.to(device)
+        batch_size = real.size(0)
 
         # Prepare noise input for generator
         noise = torch.randn(batch_size, z_dim, 1, 1, device=device)
