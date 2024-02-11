@@ -251,6 +251,8 @@ for epoch in range(num_epochs):
             break
         g_loss.backward()
         opt_gen.step()
+        with open('expanded_model_history.txt', 'a') as file:
+            file.write(f"Epoch {epoch+1} Batch {batch_idx}, Loss D: {d_loss:.4f}, Loss G: {g_loss:.4f} \n")
         
     # Logging
     print(f"Epoch [{epoch+1}/{num_epochs}] Loss D: {d_loss:.4f}, Loss G: {g_loss:.4f}")
