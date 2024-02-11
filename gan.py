@@ -181,14 +181,20 @@ for epoch in range(num_epochs):
         gradient_penalty = compute_gradient_penalty(discriminator, real, fake.detach(), device)
         loss_disc = real_loss + fake_loss + lambda_gp * gradient_penalty
 
+        if(loss_disc < 0.000001):
+            break
+        
         loss_disc.backward()
         opt_disc.step()
-
+        
 
         generator.zero_grad()
         # Discriminator output for generated images
         gen_output = discriminator(fake)
         gen_loss = criterion(gen_output, real_labels)
+        if(gen_loss < 0.000001):
+            break
+            
         gen_loss.backward()
         opt_gen.step()
         
@@ -199,4 +205,6 @@ for epoch in range(num_epochs):
     if (epoch + 1) % 1 == 0:
         torch.save(generator.state_dict(), 'generator.pth')
         torch.save(discriminator.state_dict(), 'discriminator.pth')
+    if(loss_disc < 0.000001 or gen_loss < 0.000001):
+            break
         
