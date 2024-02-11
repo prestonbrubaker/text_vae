@@ -44,9 +44,9 @@ class Generator(nn.Module):
 
 
 
-#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-device = torch.device("cpu")
+#device = torch.device("cpu")
 
 print("Using: " + str(device))
 
