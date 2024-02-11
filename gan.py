@@ -13,7 +13,7 @@ torch.cuda.empty_cache()
 
 class Generator(nn.Module):
     def __init__(self, z_dim, img_channels, img_size):
-        super(SimpleGenerator, self).__init__()
+        super(Generator, self).__init__()
         self.img_size = img_size
         self.gen = nn.Sequential(
             # Input: z_dim x 1 x 1
