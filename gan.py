@@ -39,8 +39,8 @@ class ConvGenerator(nn.Module):
             nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1, bias=True),
             nn.BatchNorm2d(32),
             nn.ReLU(True),
-            # State size: 32 x 64 x 64
-            nn.ConvTranspose2d(32, img_channels, kernel_size=4, stride=4, padding=1, bias=True),
+            # State size: 32 x 128 x 128 (previously was 32 x 64 x 64, adjusted the stride to 2 for correct upscaling)
+            nn.ConvTranspose2d(32, img_channels, kernel_size=4, stride=2, padding=1, bias=True),
             nn.Tanh()
             # Final Image size: img_channels x 256 x 256
         )
