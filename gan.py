@@ -34,6 +34,8 @@ class Generator(nn.Module):
             nn.BatchNorm2d(out_channels),
             nn.ReLU(True)
         )
+    def forward(self, x):
+        return self.gen(x)
 
 
 class Discriminator(nn.Module):
