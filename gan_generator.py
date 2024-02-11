@@ -6,77 +6,42 @@ import os
 import torch.nn.functional as F
 
 
-class SelfAttention(nn.Module):
-    """Self-attention layer for the generator."""
-    def __init__(self, in_dim):
-        super(SelfAttention, self).__init__()
-        self.query_conv = nn.Conv2d(in_dim, in_dim // 8, 1)
-        self.key_conv = nn.Conv2d(in_dim, in_dim // 8, 1)
-        self.value_conv = nn.Conv2d(in_dim, in_dim, 1)
-        self.scale = 1.0 / (in_dim ** 0.5)
-
-    def forward(self, x):
-        batch, channels, height, width = x.size()
-        query = self.query_conv(x).view(batch, -1, height*width).permute(0, 2, 1)  # [batch, seq_len, depth]
-        key = self.key_conv(x).view(batch, -1, height*width)  # [batch, depth, seq_len]
-        value = self.value_conv(x).view(batch, -1, height*width).permute(0, 2, 1)  # [batch, seq_len, depth]
-    
-        # Ensure the dimensionality matches for bmm
-        attention = torch.bmm(query, key) * self.scale  # [batch, seq_len, seq_len]
-        attention = F.softmax(attention, dim=-1)
-        
-        # Adjust value or the permute operation to match bmm expectations
-        value_permuted = value.permute(0, 2, 1)  # Permute to match the expected dimensions for bmm
-        out = torch.bmm(value_permuted, attention.permute(0, 2, 1))  # Now [batch, depth, seq_len]
-        out = out.permute(0, 2, 1).reshape(batch, channels, height, width)  # Use .reshape() instead of .view()
-    
-        return out + x  # Skip connection
-
-class ResBlock(nn.Module):
-    """Residual block for the generator."""
-    def __init__(self, in_channels, out_channels, upsample=None):
-        super(ResBlock, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, 3, padding=1)
-        self.bn1 = nn.BatchNorm2d(out_channels)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, 3, padding=1)
-        self.bn2 = nn.BatchNorm2d(out_channels)
-        self.upsample = upsample
-        self.adjust_channels = nn.Conv2d(in_channels, out_channels, 1) if in_channels != out_channels else None
-
-    def forward(self, x):
-        residual = x
-        out = F.relu(self.bn1(self.conv1(x)))
-        out = self.bn2(self.conv2(out))
-        if self.upsample:
-            out = F.interpolate(out, scale_factor=self.upsample, mode='nearest')
-            residual = F.interpolate(residual, scale_factor=self.upsample, mode='nearest')
-        if self.adjust_channels:
-            residual = self.adjust_channels(residual)
-        out += residual
-        return F.relu(out)
-
 class Generator(nn.Module):
-    def __init__(self, z_dim, img_channels):
+    def __init__(self, z_dim, img_channels=1, img_size=256):
         super(Generator, self).__init__()
-        self.init_size = 256 // 16  # This will give a starting size of 16x16
-        self.l1 = nn.Sequential(nn.Linear(z_dim, 128 * self.init_size ** 2))
+        self.img_size = img_size
+        # Initial size before ConvTranspose layers
+        self.init_size = img_size // 16  # Start size (for example, 16x16)
+        self.fc = nn.Linear(z_dim, 512 * self.init_size ** 2)  # Prepare input for ConvTranspose
 
         self.model = nn.Sequential(
-            ResBlock(128, 128, upsample=2),
-            SelfAttention(128),
-            ResBlock(128, 64, upsample=2),
-            ResBlock(64, 32, upsample=2),
-            SelfAttention(32),
-            ResBlock(32, img_channels, upsample=2),
-            nn.Tanh()
+            # Input: B x 512*init_size^2 -> B x 512 x init_size x init_size
+            nn.BatchNorm2d(512),
+            nn.ReLU(True),
+            # First upsampling
+            nn.ConvTranspose2d(512, 256, 4, stride=2, padding=1),  # -> B x 256 x 2*init_size x 2*init_size
+            nn.BatchNorm2d(256),
+            nn.ReLU(True),
+            # Second upsampling
+            nn.ConvTranspose2d(256, 128, 4, stride=2, padding=1),  # -> B x 128 x 4*init_size x 4*init_size
+            nn.BatchNorm2d(128),
+            nn.ReLU(True),
+            # Third upsampling
+            nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1),  # -> B x 64 x 8*init_size x 8*init_size
+            nn.BatchNorm2d(64),
+            nn.ReLU(True),
+            # Fourth upsampling to get to 256x256
+            nn.ConvTranspose2d(64, img_channels, 4, stride=2, padding=1),  # -> B x img_channels x 16*init_size x 16*init_size
+            nn.Tanh()  # Tanh to get values between -1 and 1
         )
 
-    def forward(self, z):
-        out = self.l1(z)
-        # Adjusted reshaping based on the corrected initial size calculation
-        out = out.view(out.shape[0], 128, self.init_size, self.init_size)  # Reshape to (batch_size, 128, 16, 16)
-        img = self.model(out)
+    def forward(self, noise):
+        # Transform noise to match ConvTranspose2d input
+        noise = self.fc(noise)
+        noise = noise.view(noise.size(0), 512, self.init_size, self.init_size)  # Reshape to (batch, channels, H, W)
+        img = self.model(noise)
         return img
+
 
 
 #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
