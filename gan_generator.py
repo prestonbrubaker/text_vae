@@ -79,9 +79,9 @@ class Generator(nn.Module):
         return img
 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-#device = torch.device("cpu")
+device = torch.device("cpu")
 
 print("Using: " + str(device))
 
