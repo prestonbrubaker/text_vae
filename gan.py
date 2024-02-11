@@ -14,33 +14,28 @@ torch.cuda.empty_cache()
 class Generator(nn.Module):
     def __init__(self, z_dim, img_channels, img_size):
         super(Generator, self).__init__()
-        self.img_size = img_size
         self.gen = nn.Sequential(
-            # Input: z_dim x 1 x 1
-            nn.ConvTranspose2d(z_dim, 512, kernel_size=4, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(512),
-            nn.ReLU(True),
-            # State size: 512 x 4 x 4
-            nn.ConvTranspose2d(512, 256, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(True),
-            # State size: 256 x 8 x 8
-            nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(128),
-            nn.ReLU(True),
-            # State size: 128 x 16 x 16
-            nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(64),
-            nn.ReLU(True),
-            # State size: 64 x 32 x 32
-            nn.ConvTranspose2d(64, img_channels, kernel_size=4, stride=2, padding=1, bias=False),
+            # Linear layer to transform the input
+            nn.Linear(z_dim, 128),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Linear(128, 256),
+            nn.BatchNorm1d(256),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Linear(256, 512),
+            nn.BatchNorm1d(512),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Linear(512, 1024),
+            nn.BatchNorm1d(1024),
+            nn.LeakyReLU(0.2, inplace=True),
+            # Final layer to produce the image
+            nn.Linear(1024, img_channels*img_size*img_size),
             nn.Tanh()
-            # Output state size: img_channels x img_size x img_size
         )
 
     def forward(self, x):
-        return self.gen(x)
-
+        x = self.gen(x)
+        # Reshape the output to image dimensions
+        return x.view(x.size(0), img_channels, img_size, img_size)
 
 class Discriminator(nn.Module):
     def __init__(self, img_channels=1):
@@ -165,7 +160,7 @@ for epoch in range(num_epochs):
         
         real = real.to(device)
         batch_size = real.size(0)
-        noise = torch.randn(batch_size, z_dim, device=device)
+        noise = torch.randn(batch_size, z_dim, 1, 1, device=device)  # Reshape noise to [batch_size, z_dim, 1, 1]
         fake = generator(noise)
 
         real_labels = torch.ones(batch_size, 1, device=device)  # Shape [100, 1] for real images
